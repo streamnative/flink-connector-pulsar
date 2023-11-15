@@ -552,9 +552,28 @@ under the License.
             </plugin>
 
             <plugin>
-                <groupId>org.commonjava.maven.plugins</groupId>
-                <artifactId>directory-maven-plugin</artifactId>
-            </plugin>
+                    <!-- Sets a 'rootDir' system property that points to the root of the project.
+                         Child projects who want to use it must set the ${flink.parent.artifactId} property -->
+                    <groupId>org.commonjava.maven.plugins</groupId>
+                    <artifactId>directory-maven-plugin</artifactId>
+                    <version>0.1</version>
+                    <executions>
+                        <execution>
+                            <id>directories</id>
+                            <goals>
+                                <goal>directory-of</goal>
+                            </goals>
+                            <phase>initialize</phase>
+                            <configuration>
+                                <property>rootDir</property>
+                                <project>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>${flink.parent.artifactId}</artifactId>
+                                </project>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
         </plugins>
     </build>
 
