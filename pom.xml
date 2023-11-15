@@ -31,7 +31,7 @@ under the License.
 
     <groupId>io.streamnative.connectors</groupId>
     <artifactId>flink-connector-pulsar-parent</artifactId>
-    <version>4.0</version>
+    <version>4.1-SNAPSHOT</version>
     <name>Flink : Connectors : Pulsar : Parent</name>
     <packaging>pom</packaging>
     <inceptionYear>2022</inceptionYear>
