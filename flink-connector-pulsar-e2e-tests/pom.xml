@@ -125,7 +125,7 @@ under the License.
 				<configuration>
 					<artifactItems>
 						<artifactItem>
-							<groupId>org.apache.flink</groupId>
+							<groupId>io.streamnative.connectors</groupId>
 							<artifactId>flink-sql-connector-pulsar</artifactId>
 							<version>${project.version}</version>
 							<destFileName>pulsar-connector.jar</destFileName>
