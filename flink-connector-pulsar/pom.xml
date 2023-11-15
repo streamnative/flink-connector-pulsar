@@ -24,7 +24,7 @@ under the License.
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>org.apache.flink</groupId>
+		<groupId>io.streamnative.connectors</groupId>
 		<artifactId>flink-connector-pulsar-parent</artifactId>
 		<version>4.0-SNAPSHOT</version>
 	</parent>
