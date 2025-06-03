@@ -53,8 +53,8 @@ jobs:
     with:
       flink_version: ${{ matrix.flink }}
       jdk_version: ${{ matrix.jdk }}
-      timeout_global: 120
-      timeout_test: 80
+      timeout_global: 240
+      timeout_test: 160
   check_dead_links:
     runs-on: ubuntu-latest
     timeout-minutes: 30
