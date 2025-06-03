@@ -175,7 +175,8 @@ class PulsarWriterTest extends PulsarTestSuiteBase {
                     UnregisteredMetricGroups.createUnregisteredOperatorMetricGroup()
                             .getIOMetricGroup();
             MetricGroup metricGroup = metricListener.getMetricGroup();
-            this.metricGroup = MetricsGroupTestUtils.mockWriterMetricGroup(metricGroup, ioMetricGroup);
+            this.metricGroup =
+                    MetricsGroupTestUtils.mockWriterMetricGroup(metricGroup, ioMetricGroup);
             this.timeService = new TestProcessingTimeService();
         }
 

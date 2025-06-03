@@ -54,7 +54,9 @@ public class PulsarChangelogTableITCase extends PulsarTableTestBase {
         tableConf.set(
                 ExecutionConfigOptions.TABLE_EXEC_MINIBATCH_ALLOW_LATENCY, Duration.ofSeconds(1));
         tableConf.set(ExecutionConfigOptions.TABLE_EXEC_MINIBATCH_SIZE, 5000L);
-        tableConf.set(OptimizerConfigOptions.TABLE_OPTIMIZER_AGG_PHASE_STRATEGY, AggregatePhaseStrategy.TWO_PHASE);
+        tableConf.set(
+                OptimizerConfigOptions.TABLE_OPTIMIZER_AGG_PHASE_STRATEGY,
+                AggregatePhaseStrategy.TWO_PHASE);
 
         // ---------- Write the Debezium json into Pulsar -------------------
         List<String> lines = readLines("debezium-data-schema-exclude.txt");
@@ -183,7 +185,9 @@ public class PulsarChangelogTableITCase extends PulsarTableTestBase {
         tableConf.set(
                 ExecutionConfigOptions.TABLE_EXEC_MINIBATCH_ALLOW_LATENCY, Duration.ofSeconds(1));
         tableConf.set(ExecutionConfigOptions.TABLE_EXEC_MINIBATCH_SIZE, 5000L);
-        tableConf.set(OptimizerConfigOptions.TABLE_OPTIMIZER_AGG_PHASE_STRATEGY, AggregatePhaseStrategy.TWO_PHASE);
+        tableConf.set(
+                OptimizerConfigOptions.TABLE_OPTIMIZER_AGG_PHASE_STRATEGY,
+                AggregatePhaseStrategy.TWO_PHASE);
 
         // ---------- Write the Canal json into Pulsar -------------------
         List<String> lines = readLines("canal-data.txt");
@@ -324,7 +328,9 @@ public class PulsarChangelogTableITCase extends PulsarTableTestBase {
         tableConf.set(
                 ExecutionConfigOptions.TABLE_EXEC_MINIBATCH_ALLOW_LATENCY, Duration.ofSeconds(1));
         tableConf.set(ExecutionConfigOptions.TABLE_EXEC_MINIBATCH_SIZE, 5000L);
-        tableConf.set(OptimizerConfigOptions.TABLE_OPTIMIZER_AGG_PHASE_STRATEGY, AggregatePhaseStrategy.TWO_PHASE);
+        tableConf.set(
+                OptimizerConfigOptions.TABLE_OPTIMIZER_AGG_PHASE_STRATEGY,
+                AggregatePhaseStrategy.TWO_PHASE);
 
         // ---------- Write the Maxwell json into Pulsar -------------------
         List<String> lines = readLines("maxwell-data.txt");
