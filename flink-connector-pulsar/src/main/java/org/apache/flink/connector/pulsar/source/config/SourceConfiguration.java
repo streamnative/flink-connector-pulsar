@@ -78,7 +78,8 @@ public class SourceConfiguration extends PulsarConfiguration {
         this.enableAutoAcknowledgeMessage = get(PULSAR_ENABLE_AUTO_ACKNOWLEDGE_MESSAGE);
         this.autoCommitCursorInterval = get(PULSAR_AUTO_COMMIT_CURSOR_INTERVAL);
         this.fetchOneMessageTime = getOptional(PULSAR_FETCH_ONE_MESSAGE_TIME).orElse(0);
-        this.maxFetchTime = get(PULSAR_MAX_FETCH_TIME,  (Function<Long, Duration>) Duration::ofMillis);
+        this.maxFetchTime = get(
+                PULSAR_MAX_FETCH_TIME,  (Function<Long, Duration>) Duration::ofMillis);
         this.maxFetchRecords = get(PULSAR_MAX_FETCH_RECORDS);
         this.verifyInitialOffsets = get(PULSAR_VERIFY_INITIAL_OFFSETS);
         this.subscriptionName = get(PULSAR_SUBSCRIPTION_NAME);

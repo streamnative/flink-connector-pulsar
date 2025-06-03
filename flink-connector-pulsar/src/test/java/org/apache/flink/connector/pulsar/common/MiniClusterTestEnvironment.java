@@ -66,7 +66,9 @@ public class MiniClusterTestEnvironment implements TestEnvironment, ClusterContr
 
     public MiniClusterTestEnvironment() {
         Configuration conf = new Configuration();
-        conf.set(METRIC_FETCHER_UPDATE_INTERVAL, Duration.ofMillis(METRIC_FETCHER_UPDATE_INTERVAL_MS));
+        conf.set(
+                METRIC_FETCHER_UPDATE_INTERVAL,
+                Duration.ofMillis(METRIC_FETCHER_UPDATE_INTERVAL_MS));
         TaskExecutorResourceUtils.adjustForLocalExecution(conf);
         this.miniCluster =
                 new MiniClusterWithClientResource(
