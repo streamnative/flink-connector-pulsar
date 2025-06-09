@@ -628,7 +628,7 @@ under the License.
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>${maven.javadoc.plugin.version}</version>
                         <configuration>
-                            <source>8</source>
+                            <source>17</source>
                         </configuration>
                         <executions>
                             <execution>
