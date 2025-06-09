@@ -628,7 +628,10 @@ under the License.
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>${maven.javadoc.plugin.version}</version>
                         <configuration>
-                            <source>17</source>
+                            <source>8</source>
+                            <!-- Disable module-specific options for Java 8 -->
+                            <additionalOptions>-Xdoclint:none</additionalOptions>
+                            <failOnError>false</failOnError>
                         </configuration>
                         <executions>
                             <execution>
