@@ -24,7 +24,7 @@ under the License.
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>org.apache.flink</groupId>
+		<groupId>io.streamnative.connectors</groupId>
 		<artifactId>flink-connector-pulsar-parent</artifactId>
 		<version>4.3-SNAPSHOT</version>
 	</parent>
@@ -40,7 +40,7 @@ under the License.
 
 	<dependencies>
 		<dependency>
-			<groupId>org.apache.flink</groupId>
+			<groupId>io.streamnative.connectors</groupId>
 			<artifactId>flink-connector-pulsar</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -113,4 +113,32 @@ under the License.
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+        <profile>
+            <id>release</id>
+			<!-- We must generate a -javadoc JAR file to publish on Maven Central -->
+            <build>
+                <plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>empty-javadoc-jar</id>
+								<phase>package</phase>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+								<configuration>
+									<classifier>javadoc</classifier>
+									<classesDirectory>${basedir}/javadoc</classesDirectory>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
