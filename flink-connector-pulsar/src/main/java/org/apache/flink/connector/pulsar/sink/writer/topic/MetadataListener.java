@@ -112,7 +112,8 @@ public class MetadataListener implements Serializable, Closeable {
                                     public Optional<Integer> load(String topic)
                                             throws ExecutionException, InterruptedException {
                                         PartitionedTopicMetadata metadata =
-                                                clientImpl.getPartitionedTopicMetadata(topic).get();
+                                                clientImpl.getPartitionedTopicMetadata(topic,
+                                                                false, false).get();
                                         return Optional.of(metadata.partitions);
                                     }
                                 });
