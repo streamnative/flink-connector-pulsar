@@ -54,7 +54,7 @@ public abstract class BasePulsarSubscriber implements PulsarSubscriber {
 
         PulsarClientImpl clientImpl = (PulsarClientImpl) client;
         PartitionedTopicMetadata metadata =
-                clientImpl.getPartitionedTopicMetadata(topic, false, true).get();
+                clientImpl.getPartitionedTopicMetadata(topic, true, true).get();
         if (metadata.partitions == NON_PARTITIONED) {
             NON_PARTITIONED_TOPICS.add(topic);
         }

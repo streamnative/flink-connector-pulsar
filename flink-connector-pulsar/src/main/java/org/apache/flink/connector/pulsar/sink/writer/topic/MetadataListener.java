@@ -114,7 +114,7 @@ public class MetadataListener implements Serializable, Closeable {
                                         PartitionedTopicMetadata metadata =
                                                 clientImpl
                                                         .getPartitionedTopicMetadata(
-                                                                topic, false, true)
+                                                                topic, true, true)
                                                         .get();
                                         return Optional.of(metadata.partitions);
                                     }
