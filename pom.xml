@@ -35,6 +35,14 @@ under the License.
     <name>Flink : Connectors : Pulsar : Parent</name>
     <packaging>pom</packaging>
     <inceptionYear>2022</inceptionYear>
+    <description>Flink pulsar connector</description>
+
+    <developers>
+        <developer>
+            <organization>StreamNative</organization>
+            <organizationUrl>https://streamnative.io/</organizationUrl>
+        </developer>
+    </developers>
 
     <scm>
         <url>https://github.com/apache/flink-connector-pulsar</url>
@@ -92,7 +100,7 @@ under the License.
         <flink.forkCountUnitTest>2</flink.forkCountUnitTest>
         <flink.forkCountITCase>2</flink.forkCountITCase>
 
-        <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
+        <maven-central-plugin.version>0.7.0</maven-central-plugin.version>
         <maven.gpg.plugin.version>3.0.1</maven.gpg.plugin.version>
         <maven.javadoc.plugin.version>3.4.1</maven.javadoc.plugin.version>
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
@@ -487,14 +495,13 @@ under the License.
                 </plugin>
 
                 <plugin>
-                    <groupId>org.sonatype.plugins</groupId>
-                    <artifactId>nexus-staging-maven-plugin</artifactId>
-                    <version>${nexus-staging-maven-plugin.version}</version>
+                    <groupId>org.sonatype.central</groupId>
+                    <artifactId>central-publishing-maven-plugin</artifactId>
+                    <version>${maven-central-plugin.version}</version>
                     <extensions>true</extensions>
                     <configuration>
-                        <serverId>ossrh</serverId>
-                        <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-                        <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        <publishingServerId>central</publishingServerId>
+                        <autoPublish>true</autoPublish>
                     </configuration>
                 </plugin>
             </plugins>
@@ -594,16 +601,6 @@ under the License.
         </plugins>
     </build>
 
-    <distributionManagement>
-        <repository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
     <profiles>
         <profile>
             <id>release</id>
@@ -627,6 +624,12 @@ under the License.
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>${maven.javadoc.plugin.version}</version>
+                        <configuration>
+                            <source>8</source>
+                            <!-- Disable module-specific options for Java 8 -->
+                            <additionalOptions>-Xdoclint:none</additionalOptions>
+                            <failOnError>false</failOnError>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>aggregate</id>
