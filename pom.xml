@@ -85,6 +85,7 @@ under the License.
         <os-maven-plugin.version>1.7.0</os-maven-plugin.version>
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
         <build-helper-maven-plugin.version>3.3.0</build-helper-maven-plugin.version>
+        <maven-shade-plugin.version>3.6.1</maven-shade-plugin.version>
 
         <flink.parent.artifactId>flink-connector-pulsar-parent</flink.parent.artifactId>
 
@@ -479,6 +480,12 @@ under the License.
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
                     <version>${build-helper-maven-plugin.version}</version>
+                </plugin>
+
+                <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-shade-plugin</artifactId>
+                  <version>${maven-shade-plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
