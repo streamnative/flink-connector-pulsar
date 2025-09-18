@@ -46,6 +46,7 @@ concurrency:
 jobs:
   compile_and_test:
     strategy:
+      fail-fast: false
       matrix:
         flink: [ 1.17.2, 1.18.1 ]
         jdk: [ 8, 11, 17 ]
