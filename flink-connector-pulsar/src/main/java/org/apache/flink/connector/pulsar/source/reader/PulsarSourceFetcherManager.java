@@ -68,7 +68,7 @@ public class PulsarSourceFetcherManager
             FutureCompletingBlockingQueue<RecordsWithSplitIds<Message<byte[]>>> elementsQueue,
             Supplier<SplitReader<Message<byte[]>, PulsarPartitionSplit>> splitReaderSupplier,
             Configuration configuration) {
-        super(elementsQueue, splitReaderSupplier, configuration);
+        super(splitReaderSupplier, configuration);
     }
 
     /**

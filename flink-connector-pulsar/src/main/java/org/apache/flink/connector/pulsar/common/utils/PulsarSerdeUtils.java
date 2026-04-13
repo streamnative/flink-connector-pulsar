@@ -19,6 +19,12 @@
 package org.apache.flink.connector.pulsar.common.utils;
 
 import org.apache.flink.annotation.Internal;
+import org.apache.flink.table.types.DataType;
+import org.apache.flink.table.types.FieldsDataType;
+import org.apache.flink.table.types.logical.LogicalType;
+import org.apache.flink.table.types.logical.LogicalTypeRoot;
+import org.apache.flink.table.types.logical.RowType;
+import org.apache.flink.table.types.logical.utils.LogicalTypeUtils;
 import org.apache.flink.util.InstantiationUtil;
 import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.function.BiConsumerWithException;
@@ -33,6 +39,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.apache.flink.util.Preconditions.checkArgument;
 
 /** Util for serialize and deserialize. */
 @Internal
@@ -157,5 +166,20 @@ public final class PulsarSerdeUtils {
             result.put(key, value);
         }
         return result;
+    }
+
+    /**
+     * Local replacement for Flink 1.18's DataTypeUtils.stripRowPrefix which was removed in Flink
+     * 2.x.
+     */
+    public static DataType stripRowPrefix(DataType dataType, String prefix) {
+        checkArgument(dataType.getLogicalType().is(LogicalTypeRoot.ROW), "Row data type expected.");
+        final RowType rowType = (RowType) dataType.getLogicalType();
+        final List<String> newFieldNames =
+                rowType.getFieldNames().stream()
+                        .map(name -> name.startsWith(prefix) ? name.substring(prefix.length()) : name)
+                        .collect(Collectors.toList());
+        final LogicalType newRowType = LogicalTypeUtils.renameRowFields(rowType, newFieldNames);
+        return new FieldsDataType(newRowType, dataType.getConversionClass(), dataType.getChildren());
     }
 }

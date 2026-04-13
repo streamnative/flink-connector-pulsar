@@ -91,7 +91,6 @@ public class PulsarSourceReader<OUT>
             PulsarClient pulsarClient,
             SourceReaderContext context) {
         super(
-                elementsQueue,
                 fetcherManager,
                 new PulsarRecordEmitter<>(deserializationSchema),
                 sourceConfiguration,

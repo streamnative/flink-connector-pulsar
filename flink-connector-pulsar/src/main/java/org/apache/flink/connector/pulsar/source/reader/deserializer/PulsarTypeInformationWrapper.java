@@ -21,7 +21,6 @@ import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
-import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.core.memory.DataInputDeserializer;
 import org.apache.flink.util.Collector;
 
@@ -49,7 +48,7 @@ public class PulsarTypeInformationWrapper<T> implements PulsarDeserializationSch
 
     public PulsarTypeInformationWrapper(TypeInformation<T> information, ExecutionConfig config) {
         this.information = information;
-        this.serializer = information.createSerializer(config);
+        this.serializer = information.createSerializer(config.getSerializerConfig());
     }
 
     @Override
