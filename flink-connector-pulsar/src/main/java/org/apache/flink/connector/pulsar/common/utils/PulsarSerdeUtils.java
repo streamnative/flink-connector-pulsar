@@ -173,8 +173,7 @@ public final class PulsarSerdeUtils {
      * 2.x.
      */
     public static DataType stripRowPrefix(DataType dataType, String prefix) {
-        checkArgument(
-                dataType.getLogicalType().is(LogicalTypeRoot.ROW), "Row data type expected.");
+        checkArgument(dataType.getLogicalType().is(LogicalTypeRoot.ROW), "Row data type expected.");
         final RowType rowType = (RowType) dataType.getLogicalType();
         final List<String> newFieldNames =
                 rowType.getFieldNames().stream()
