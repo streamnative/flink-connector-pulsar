@@ -26,6 +26,8 @@ import org.apache.flink.util.Collector;
 
 import org.apache.pulsar.client.api.Message;
 
+import javax.annotation.Nullable;
+
 /**
  * Wrap the flink TypeInformation into a {@code PulsarDeserializationSchema}. We would create a
  * flink {@code TypeSerializer} by using given ExecutionConfig. This execution config could be
@@ -46,9 +48,11 @@ public class PulsarTypeInformationWrapper<T> implements PulsarDeserializationSch
     private final TypeInformation<T> information;
     private final TypeSerializer<T> serializer;
 
-    public PulsarTypeInformationWrapper(TypeInformation<T> information, ExecutionConfig config) {
+    public PulsarTypeInformationWrapper(
+            TypeInformation<T> information, @Nullable ExecutionConfig config) {
         this.information = information;
-        this.serializer = information.createSerializer(config.getSerializerConfig());
+        final ExecutionConfig executionConfig = config == null ? new ExecutionConfig() : config;
+        this.serializer = information.createSerializer(executionConfig.getSerializerConfig());
     }
 
     @Override

@@ -24,7 +24,6 @@ import org.apache.flink.table.types.FieldsDataType;
 import org.apache.flink.table.types.logical.LogicalType;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.RowType;
-import org.apache.flink.table.types.logical.utils.LogicalTypeUtils;
 import org.apache.flink.util.InstantiationUtil;
 import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.function.BiConsumerWithException;
@@ -40,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.apache.flink.util.Preconditions.checkArgument;
 
@@ -183,8 +183,26 @@ public final class PulsarSerdeUtils {
                                                 ? name.substring(prefix.length())
                                                 : name)
                         .collect(Collectors.toList());
-        final LogicalType newRowType = LogicalTypeUtils.renameRowFields(rowType, newFieldNames);
+        final LogicalType newRowType = renameRowFields(rowType, newFieldNames);
         return new FieldsDataType(
                 newRowType, dataType.getConversionClass(), dataType.getChildren());
+    }
+
+    public static RowType renameRowFields(RowType rowType, List<String> newFieldNames) {
+        Preconditions.checkArgument(
+                rowType.getFieldCount() == newFieldNames.size(),
+                "Row length and new names must match.");
+        final List<RowType.RowField> newFields =
+                IntStream.range(0, rowType.getFieldCount())
+                        .mapToObj(
+                                pos -> {
+                                    final RowType.RowField oldField = rowType.getFields().get(pos);
+                                    return new RowType.RowField(
+                                            newFieldNames.get(pos),
+                                            oldField.getType(),
+                                            oldField.getDescription().orElse(null));
+                                })
+                        .collect(Collectors.toList());
+        return new RowType(rowType.isNullable(), newFields);
     }
 }
