@@ -44,6 +44,9 @@ jobs:
         }, {
           flink: 1.17.2,
           branch: v4.0
+        }{
+          flink: 2.2.0,
+          branch: main
         }]
         include:
           - jdk: 17
