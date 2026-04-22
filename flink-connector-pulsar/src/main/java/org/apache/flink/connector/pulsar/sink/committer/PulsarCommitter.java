@@ -61,7 +61,8 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
     private PulsarClient pulsarClient;
     private TransactionCoordinatorClient coordinatorClient;
 
-    public PulsarCommitter(SinkConfiguration sinkConfiguration, CommitterInitContext committerInitContext) {
+    public PulsarCommitter(
+            SinkConfiguration sinkConfiguration, CommitterInitContext committerInitContext) {
         this.sinkConfiguration = checkNotNull(sinkConfiguration);
     }
 

@@ -117,7 +117,8 @@ public class PulsarTableDeserializationSchemaFactory implements Serializable {
 
         DataType physicalFormatDataType = Projection.of(projection).project(this.physicalDataType);
         if (prefix != null) {
-            physicalFormatDataType = PulsarSerdeUtils.stripRowPrefix(physicalFormatDataType, prefix);
+            physicalFormatDataType =
+                    PulsarSerdeUtils.stripRowPrefix(physicalFormatDataType, prefix);
         }
         return format.createRuntimeDecoder(context, physicalFormatDataType);
     }

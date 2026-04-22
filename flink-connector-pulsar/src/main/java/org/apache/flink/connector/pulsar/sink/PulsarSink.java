@@ -148,7 +148,8 @@ public class PulsarSink<IN> implements Sink<IN>, SupportsCommitter<PulsarCommitt
     }
 
     @Override
-    public Committer<PulsarCommittable> createCommitter(CommitterInitContext committerInitContext) throws IOException {
+    public Committer<PulsarCommittable> createCommitter(
+            CommitterInitContext committerInitContext) throws IOException {
         return new PulsarCommitter(sinkConfiguration, committerInitContext);
     }
 

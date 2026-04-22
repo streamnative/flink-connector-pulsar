@@ -173,13 +173,19 @@ public final class PulsarSerdeUtils {
      * 2.x.
      */
     public static DataType stripRowPrefix(DataType dataType, String prefix) {
-        checkArgument(dataType.getLogicalType().is(LogicalTypeRoot.ROW), "Row data type expected.");
+        checkArgument(
+                dataType.getLogicalType().is(LogicalTypeRoot.ROW), "Row data type expected.");
         final RowType rowType = (RowType) dataType.getLogicalType();
         final List<String> newFieldNames =
                 rowType.getFieldNames().stream()
-                        .map(name -> name.startsWith(prefix) ? name.substring(prefix.length()) : name)
+                        .map(
+                                name ->
+                                        name.startsWith(prefix)
+                                                ? name.substring(prefix.length())
+                                                : name)
                         .collect(Collectors.toList());
         final LogicalType newRowType = LogicalTypeUtils.renameRowFields(rowType, newFieldNames);
-        return new FieldsDataType(newRowType, dataType.getConversionClass(), dataType.getChildren());
+        return new FieldsDataType(
+                newRowType, dataType.getConversionClass(), dataType.getChildren());
     }
 }
