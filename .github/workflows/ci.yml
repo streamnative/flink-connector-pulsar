@@ -48,7 +48,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        flink: [ 1.17.2, 1.18.1 ]
+        flink: [ 1.17.2, 1.18.1, 2.2.0 ]
         jdk: [ 8, 11, 17 ]
         exclude:
           - jdk: 17
