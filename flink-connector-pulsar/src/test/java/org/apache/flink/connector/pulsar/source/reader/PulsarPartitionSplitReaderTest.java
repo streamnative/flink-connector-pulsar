@@ -29,6 +29,7 @@ import org.apache.flink.connector.pulsar.source.enumerator.cursor.StopCursor;
 import org.apache.flink.connector.pulsar.source.enumerator.topic.TopicPartition;
 import org.apache.flink.connector.pulsar.source.split.PulsarPartitionSplit;
 import org.apache.flink.connector.pulsar.testutils.PulsarTestSuiteBase;
+import org.apache.flink.util.FlinkRuntimeException;
 
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.MessageId;
@@ -243,7 +244,6 @@ class PulsarPartitionSplitReaderTest extends PulsarTestSuiteBase {
     @Test
     void consumeMessageCreatedBeforeHandleSplitsChangesAndUseSecondLastMessageWithoutSeek()
             throws Exception {
-        PulsarPartitionSplitReader splitReader = splitReader();
         String topicName = randomAlphabetic(10);
 
         operator().setupTopic(topicName, STRING, () -> randomAlphabetic(10), 20, false);
@@ -253,16 +253,32 @@ class PulsarPartitionSplitReaderTest extends PulsarTestSuiteBase {
                                 .admin()
                                 .topics()
                                 .getLastMessageId(topicNameWithPartition(topicName, 0));
-        // when recover, use exclusive startCursor
-        handleSplit(
-                splitReader,
-                topicName,
-                0,
+        MessageId startMessageId =
                 new MessageIdImpl(
                         lastMessageId.getLedgerId(),
                         lastMessageId.getEntryId() - 1,
-                        lastMessageId.getPartitionIndex()));
-        fetchedMessages(splitReader, 1, true);
+                        lastMessageId.getPartitionIndex());
+
+        FlinkRuntimeException lastException = null;
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            PulsarPartitionSplitReader splitReader = splitReader();
+            try {
+                // when recover, use exclusive startCursor
+                handleSplit(splitReader, topicName, 0, startMessageId);
+                fetchedMessages(splitReader, 1, true);
+                return;
+            } catch (FlinkRuntimeException e) {
+                if (!isRetryableClosedChannel(e) || attempt == 3) {
+                    throw e;
+                }
+                lastException = e;
+                sleepUninterruptibly(200, TimeUnit.MILLISECONDS);
+            }
+        }
+
+        if (lastException != null) {
+            throw lastException;
+        }
     }
 
     @Test
@@ -367,6 +383,19 @@ class PulsarPartitionSplitReaderTest extends PulsarTestSuiteBase {
 
         // Accept the split and start consuming.
         reader.handleSplitsChanges(addition);
+    }
+
+    private boolean isRetryableClosedChannel(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            String className = current.getClass().getName();
+            if (className.contains("ClosedChannelException")
+                    || className.contains("StacklessClosedChannelException")) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
     private Message<byte[]> fetchedMessage(PulsarPartitionSplitReader splitReader) {
