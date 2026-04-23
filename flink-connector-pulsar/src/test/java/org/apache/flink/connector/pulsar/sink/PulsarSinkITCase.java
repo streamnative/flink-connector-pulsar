@@ -95,6 +95,12 @@ class PulsarSinkITCase {
 
         private static final int PARALLELISM = 1;
 
+        @Override
+        protected PulsarRuntime runtime() {
+            // Use an isolated runtime so JUnit teardown closes Pulsar client/admin threads.
+            return PulsarRuntime.container();
+        }
+
         @RegisterExtension
         private final MiniClusterExtension clusterExtension =
                 new MiniClusterExtension(
