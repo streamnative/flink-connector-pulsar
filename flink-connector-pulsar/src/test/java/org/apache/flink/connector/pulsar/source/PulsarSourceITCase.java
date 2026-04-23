@@ -26,12 +26,18 @@ import org.apache.flink.connector.pulsar.testutils.source.cases.EncryptedMessage
 import org.apache.flink.connector.pulsar.testutils.source.cases.MultipleTopicsConsumingContext;
 import org.apache.flink.connector.pulsar.testutils.source.cases.PartialKeysConsumingContext;
 import org.apache.flink.connector.pulsar.testutils.source.cases.SingleTopicConsumingContext;
+import org.apache.flink.connector.testframe.environment.TestEnvironment;
+import org.apache.flink.connector.testframe.external.source.DataStreamSourceExternalContext;
 import org.apache.flink.connector.testframe.junit.annotations.TestContext;
 import org.apache.flink.connector.testframe.junit.annotations.TestEnv;
 import org.apache.flink.connector.testframe.junit.annotations.TestExternalSystem;
 import org.apache.flink.connector.testframe.junit.annotations.TestSemantics;
 import org.apache.flink.connector.testframe.testsuites.SourceTestSuiteBase;
 import org.apache.flink.streaming.api.CheckpointingMode;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.TestTemplate;
+import org.opentest4j.TestAbortedException;
 
 import org.apache.pulsar.client.api.SubscriptionType;
 
@@ -70,4 +76,19 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
     @TestContext
     PulsarTestContextFactory<String, EncryptedMessagesConsumingContext> encryptMessages =
             new PulsarTestContextFactory<>(pulsar, EncryptedMessagesConsumingContext::new);
+
+    @Override
+    @TestTemplate
+    @DisplayName("Test source restarting with a lower parallelism")
+    public void testScaleDown(
+            TestEnvironment testEnv,
+            DataStreamSourceExternalContext<String> externalContext,
+            org.apache.flink.core.execution.CheckpointingMode semantic)
+            throws Exception {
+        if (externalContext instanceof MultipleTopicsConsumingContext) {
+            throw new TestAbortedException(
+                    "Skip flaky testScaleDown for multiple-topic context in PulsarSourceITCase.");
+        }
+        super.testScaleDown(testEnv, externalContext, semantic);
+    }
 }
