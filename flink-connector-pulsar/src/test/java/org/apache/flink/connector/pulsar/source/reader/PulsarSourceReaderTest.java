@@ -57,6 +57,8 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -78,6 +80,7 @@ import static org.assertj.core.api.Assertions.fail;
 class PulsarSourceReaderTest extends PulsarTestSuiteBase {
 
     private static final int MAX_EMPTY_POLLING_TIMES = 10;
+    private static final Logger LOG = LoggerFactory.getLogger(PulsarSourceReaderTest.class);
 
     @Test
     void assignZeroSplitsCreatesZeroSubscription() throws Exception {
@@ -145,43 +148,51 @@ class PulsarSourceReaderTest extends PulsarTestSuiteBase {
         PulsarSourceReader<Integer> reader = sourceReader();
 
         // consume more than 1 partition
-        reader.addSplits(
-                createPartitionSplits(
-                        topicName, DEFAULT_PARTITIONS, Boundedness.CONTINUOUS_UNBOUNDED));
-        reader.notifyNoMoreSplits();
-        TestingReaderOutput<Integer> output = new TestingReaderOutput<>();
-        long checkpointId = 0;
-        int emptyResultTime = 0;
-        InputStatus status;
-        do {
-            checkpointId++;
-            status = reader.pollNext(output);
-            // Create a checkpoint for each message consumption, but not complete them.
-            reader.snapshotState(checkpointId);
-            // the first couple of pollNext() might return NOTHING_AVAILABLE before data appears
-            if (InputStatus.NOTHING_AVAILABLE == status) {
-                emptyResultTime++;
-                sleepUninterruptibly(1, TimeUnit.SECONDS);
+        try {
+            reader.addSplits(
+                    createPartitionSplits(
+                            topicName, DEFAULT_PARTITIONS, Boundedness.CONTINUOUS_UNBOUNDED));
+            reader.notifyNoMoreSplits();
+            TestingReaderOutput<Integer> output = new TestingReaderOutput<>();
+            long checkpointId = 0;
+            int emptyResultTime = 0;
+            InputStatus status;
+            do {
+                checkpointId++;
+                status = reader.pollNext(output);
+                // Create a checkpoint for each message consumption, but not complete them.
+                reader.snapshotState(checkpointId);
+                // the first couple of pollNext() might return NOTHING_AVAILABLE before data appears
+                if (InputStatus.NOTHING_AVAILABLE == status) {
+                    emptyResultTime++;
+                    sleepUninterruptibly(1, TimeUnit.SECONDS);
+                }
+
+            } while (emptyResultTime < MAX_EMPTY_POLLING_TIMES
+                    && status != InputStatus.END_OF_INPUT
+                    && output.getEmittedRecords().size()
+                    < NUM_RECORDS_PER_PARTITION * DEFAULT_PARTITIONS);
+
+            // The completion of the last checkpoint should subsume all previous checkpoints.
+            assertThat(reader.cursorsToCommit).hasSize((int) checkpointId);
+            long lastCheckpointId = checkpointId;
+            // notify checkpoint complete and expect all cursors committed
+            assertThatCode(() -> reader.notifyCheckpointComplete(lastCheckpointId))
+                    .doesNotThrowAnyException();
+            assertThat(reader.cursorsToCommit).isEmpty();
+
+            // Verify the committed offsets.
+            reader.close();
+            for (int i = 0; i < DEFAULT_PARTITIONS; i++) {
+                verifyAllMessageAcknowledged(
+                        NUM_RECORDS_PER_PARTITION, TopicNameUtils.topicNameWithPartition(topicName, i));
             }
-
-        } while (emptyResultTime < MAX_EMPTY_POLLING_TIMES
-                && status != InputStatus.END_OF_INPUT
-                && output.getEmittedRecords().size()
-                        < NUM_RECORDS_PER_PARTITION * DEFAULT_PARTITIONS);
-
-        // The completion of the last checkpoint should subsume all previous checkpoints.
-        assertThat(reader.cursorsToCommit).hasSize((int) checkpointId);
-        long lastCheckpointId = checkpointId;
-        // notify checkpoint complete and expect all cursors committed
-        assertThatCode(() -> reader.notifyCheckpointComplete(lastCheckpointId))
-                .doesNotThrowAnyException();
-        assertThat(reader.cursorsToCommit).isEmpty();
-
-        // Verify the committed offsets.
-        reader.close();
-        for (int i = 0; i < DEFAULT_PARTITIONS; i++) {
-            verifyAllMessageAcknowledged(
-                    NUM_RECORDS_PER_PARTITION, TopicNameUtils.topicNameWithPartition(topicName, i));
+        } catch (Throwable t) {
+            // TODO this test is flaky, print logs for troubleshooting.
+            LOG.error("Error when testing offsetCommitOnCheckpointComplete.", t);
+            throw t;
+        } finally {
+            reader.close();
         }
     }
 
