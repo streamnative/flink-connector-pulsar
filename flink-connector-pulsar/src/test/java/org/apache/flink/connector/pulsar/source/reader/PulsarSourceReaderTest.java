@@ -67,6 +67,7 @@ import static org.apache.flink.connector.pulsar.source.PulsarSourceOptions.PULSA
 import static org.apache.flink.connector.pulsar.source.PulsarSourceOptions.PULSAR_SUBSCRIPTION_NAME;
 import static org.apache.flink.connector.pulsar.testutils.PulsarTestCommonUtils.createPartitionSplit;
 import static org.apache.flink.connector.pulsar.testutils.PulsarTestCommonUtils.createPartitionSplits;
+import static org.apache.flink.connector.pulsar.testutils.runtime.PulsarRuntimeOperator.DEFAULT_PARTITIONS;
 import static org.apache.flink.connector.pulsar.testutils.runtime.PulsarRuntimeOperator.NUM_RECORDS_PER_PARTITION;
 import static org.apache.pulsar.shade.com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -141,69 +142,46 @@ class PulsarSourceReaderTest extends PulsarTestSuiteBase {
     @Test
     void offsetCommitOnCheckpointComplete() throws Exception {
         String topicName = topicName();
-        int partitionsForTest = 2;
-        Throwable lastException = null;
-        for (int attempt = 1; attempt <= 5; attempt++) {
-            PulsarSourceReader<Integer> reader = sourceReader();
-            try {
-                // consume more than 1 partition
-                reader.addSplits(
-                        createPartitionSplits(
-                                topicName, partitionsForTest, Boundedness.CONTINUOUS_UNBOUNDED));
-                reader.notifyNoMoreSplits();
-                TestingReaderOutput<Integer> output = new TestingReaderOutput<>();
-                long checkpointId = 0;
-                int emptyResultTime = 0;
-                InputStatus status;
-                do {
-                    checkpointId++;
-                    status = reader.pollNext(output);
-                    // Create a checkpoint for each message consumption, but not complete them.
-                    reader.snapshotState(checkpointId);
-                    // the first couple of pollNext() might return NOTHING_AVAILABLE before data
-                    // appears
-                    if (InputStatus.NOTHING_AVAILABLE == status) {
-                        emptyResultTime++;
-                        sleepUninterruptibly(1, TimeUnit.SECONDS);
-                    }
+        PulsarSourceReader<Integer> reader = sourceReader();
 
-                } while (emptyResultTime < MAX_EMPTY_POLLING_TIMES
-                        && status != InputStatus.END_OF_INPUT
-                        && output.getEmittedRecords().size()
-                                < NUM_RECORDS_PER_PARTITION * partitionsForTest);
-
-                // The completion of the last checkpoint should subsume all previous checkpoints.
-                assertThat(reader.cursorsToCommit).hasSize((int) checkpointId);
-                long lastCheckpointId = checkpointId;
-                // notify checkpoint complete and expect all cursors committed
-                assertThatCode(() -> reader.notifyCheckpointComplete(lastCheckpointId))
-                        .doesNotThrowAnyException();
-                assertThat(reader.cursorsToCommit).isEmpty();
-
-                // Verify the committed offsets.
-                reader.close();
-                for (int i = 0; i < partitionsForTest; i++) {
-                    verifyAllMessageAcknowledged(
-                            NUM_RECORDS_PER_PARTITION,
-                            TopicNameUtils.topicNameWithPartition(topicName, i));
-                }
-                return;
-            } catch (Throwable t) {
-                try {
-                    reader.close();
-                } catch (Throwable ignore) {
-                    // ignore close errors in retry branch
-                }
-                if (!isRetryableClosedChannel(t) || attempt == 5) {
-                    throw t;
-                }
-                lastException = t;
-                sleepUninterruptibly(attempt, TimeUnit.SECONDS);
+        // consume more than 1 partition
+        reader.addSplits(
+                createPartitionSplits(
+                        topicName, DEFAULT_PARTITIONS, Boundedness.CONTINUOUS_UNBOUNDED));
+        reader.notifyNoMoreSplits();
+        TestingReaderOutput<Integer> output = new TestingReaderOutput<>();
+        long checkpointId = 0;
+        int emptyResultTime = 0;
+        InputStatus status;
+        do {
+            checkpointId++;
+            status = reader.pollNext(output);
+            // Create a checkpoint for each message consumption, but not complete them.
+            reader.snapshotState(checkpointId);
+            // the first couple of pollNext() might return NOTHING_AVAILABLE before data appears
+            if (InputStatus.NOTHING_AVAILABLE == status) {
+                emptyResultTime++;
+                sleepUninterruptibly(1, TimeUnit.SECONDS);
             }
-        }
 
-        if (lastException != null) {
-            throw new RuntimeException(lastException);
+        } while (emptyResultTime < MAX_EMPTY_POLLING_TIMES
+                && status != InputStatus.END_OF_INPUT
+                && output.getEmittedRecords().size()
+                        < NUM_RECORDS_PER_PARTITION * DEFAULT_PARTITIONS);
+
+        // The completion of the last checkpoint should subsume all previous checkpoints.
+        assertThat(reader.cursorsToCommit).hasSize((int) checkpointId);
+        long lastCheckpointId = checkpointId;
+        // notify checkpoint complete and expect all cursors committed
+        assertThatCode(() -> reader.notifyCheckpointComplete(lastCheckpointId))
+                .doesNotThrowAnyException();
+        assertThat(reader.cursorsToCommit).isEmpty();
+
+        // Verify the committed offsets.
+        reader.close();
+        for (int i = 0; i < DEFAULT_PARTITIONS; i++) {
+            verifyAllMessageAcknowledged(
+                    NUM_RECORDS_PER_PARTITION, TopicNameUtils.topicNameWithPartition(topicName, i));
         }
     }
 
@@ -323,18 +301,5 @@ class PulsarSourceReaderTest extends PulsarTestSuiteBase {
         Map<String, ? extends SubscriptionStats> subscriptionStats =
                 operator().admin().topics().getStats(partitionName, true, true).getSubscriptions();
         assertThat(subscriptionStats).isEmpty();
-    }
-
-    private boolean isRetryableClosedChannel(Throwable throwable) {
-        Throwable current = throwable;
-        while (current != null) {
-            String className = current.getClass().getName();
-            if (className.contains("ClosedChannelException")
-                    || className.contains("StacklessClosedChannelException")) {
-                return true;
-            }
-            current = current.getCause();
-        }
-        return false;
     }
 }
