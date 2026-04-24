@@ -268,8 +268,10 @@ class PulsarPartitionSplitReaderTest extends PulsarTestSuiteBase {
             fetchedMessages(splitReader, 1, true);
         } catch (Throwable t) {
             // TODO this test is flaky, print logs for troubleshooting.
-            LOG.error("Error when testing"
-                    + " consumeMessageCreatedBeforeHandleSplitsChangesAndUseSecondLastMessageWithoutSeek.", t);
+            LOG.error(
+                    "Error when testing"
+                            + " consumeMessageCreatedBeforeHandleSplitsChangesAndUseSecondLastMessageWithoutSeek.",
+                    t);
             throw t;
         } finally {
             splitReader.close();

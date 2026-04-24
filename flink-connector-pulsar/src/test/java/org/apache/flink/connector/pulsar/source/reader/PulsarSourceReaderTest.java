@@ -171,7 +171,7 @@ class PulsarSourceReaderTest extends PulsarTestSuiteBase {
             } while (emptyResultTime < MAX_EMPTY_POLLING_TIMES
                     && status != InputStatus.END_OF_INPUT
                     && output.getEmittedRecords().size()
-                    < NUM_RECORDS_PER_PARTITION * DEFAULT_PARTITIONS);
+                            < NUM_RECORDS_PER_PARTITION * DEFAULT_PARTITIONS);
 
             // The completion of the last checkpoint should subsume all previous checkpoints.
             assertThat(reader.cursorsToCommit).hasSize((int) checkpointId);
@@ -185,7 +185,8 @@ class PulsarSourceReaderTest extends PulsarTestSuiteBase {
             reader.close();
             for (int i = 0; i < DEFAULT_PARTITIONS; i++) {
                 verifyAllMessageAcknowledged(
-                        NUM_RECORDS_PER_PARTITION, TopicNameUtils.topicNameWithPartition(topicName, i));
+                        NUM_RECORDS_PER_PARTITION,
+                        TopicNameUtils.topicNameWithPartition(topicName, i));
             }
         } catch (Throwable t) {
             // TODO this test is flaky, print logs for troubleshooting.
