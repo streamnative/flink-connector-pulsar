@@ -58,6 +58,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import static java.util.Collections.emptyList;
@@ -146,6 +147,7 @@ class PulsarSourceReaderTest extends PulsarTestSuiteBase {
     void offsetCommitOnCheckpointComplete() throws Exception {
         String topicName = topicName();
         PulsarSourceReader<Integer> reader = sourceReader();
+        AtomicBoolean readerClosed = new AtomicBoolean(false);
 
         // consume more than 1 partition
         try {
@@ -182,6 +184,7 @@ class PulsarSourceReaderTest extends PulsarTestSuiteBase {
             assertThat(reader.cursorsToCommit).isEmpty();
 
             // Verify the committed offsets.
+            readerClosed.set(true);
             reader.close();
             for (int i = 0; i < DEFAULT_PARTITIONS; i++) {
                 verifyAllMessageAcknowledged(
@@ -193,7 +196,9 @@ class PulsarSourceReaderTest extends PulsarTestSuiteBase {
             LOG.error("Error when testing offsetCommitOnCheckpointComplete.", t);
             throw t;
         } finally {
-            reader.close();
+            if (!readerClosed.get()) {
+                reader.close();
+            }
         }
     }
 

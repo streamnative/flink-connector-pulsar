@@ -53,7 +53,7 @@ under the License.
     <properties>
         <flink.version>2.2.0</flink.version>
         <flink-ci-tools.version>2.2.0</flink-ci-tools.version>
-        <pulsar.version>3.0.13</pulsar.version>
+        <pulsar.version>4.0.9</pulsar.version>
         <scala.binary.version>2.12</scala.binary.version>
         <bouncycastle.version>1.69</bouncycastle.version>
 
@@ -65,7 +65,7 @@ under the License.
         <assertj.version>3.23.1</assertj.version>
         <mockito.version>4.11.0</mockito.version>
         <archunit.version>1.0.1</archunit.version>
-        <testcontainers.version>1.17.6</testcontainers.version>
+        <testcontainers.version>2.0.4</testcontainers.version>
 
         <japicmp.skip>false</japicmp.skip>
         <japicmp.referenceVersion>3.0.0-1.16</japicmp.referenceVersion>
@@ -80,7 +80,7 @@ under the License.
         <byte-buddy.version>1.12.20</byte-buddy.version>
         <kryo.version>2.24.0</kryo.version>
         <objenesis.version>3.3</objenesis.version>
-        <jackson-bom.version>2.13.4.20221013</jackson-bom.version>
+        <jackson-bom.version>2.18.6</jackson-bom.version>
 
         <os-maven-plugin.version>1.7.0</os-maven-plugin.version>
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
@@ -135,7 +135,7 @@ under the License.
 
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
 
