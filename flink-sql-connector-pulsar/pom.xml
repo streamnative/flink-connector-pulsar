@@ -79,6 +79,10 @@ under the License.
                   <include>org.bouncycastle:bcpkix-jdk18on</include>
                   <include>org.bouncycastle:bcprov-jdk18on</include>
                   <include>org.bouncycastle:bcutil-jdk18on</include>
+                  <include>io.opentelemetry:opentelemetry-api</include>
+                  <include>io.opentelemetry:opentelemetry-api-incubator</include>
+                  <include>io.opentelemetry:opentelemetry-context</include>
+                  <include>io.opentelemetry:opentelemetry-common</include>
                 </includes>
               </artifactSet>
               <filters>

@@ -95,6 +95,16 @@ under the License.
 			<artifactId>pulsar-client-all</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-api-incubator</artifactId>
+		</dependency>
+
 		<!-- Tests -->
 
 		<dependency>
