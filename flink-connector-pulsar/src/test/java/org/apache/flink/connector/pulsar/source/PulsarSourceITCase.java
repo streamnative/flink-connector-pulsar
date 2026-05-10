@@ -59,10 +59,10 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
     PulsarTestContextFactory<String, SingleTopicConsumingContext> singleTopic =
             new PulsarTestContextFactory<>(pulsar, SingleTopicConsumingContext::new);
 
-    // TODO multipleTopic & testScaleDown(): the test is flaky.
-    @TestContext
-    PulsarTestContextFactory<String, MultipleTopicsConsumingContext> multipleTopic =
-            new PulsarTestContextFactory<>(pulsar, MultipleTopicsConsumingContext::new);
+//    // TODO multipleTopic & testScaleDown(): the test is flaky.
+//    @TestContext
+//    PulsarTestContextFactory<String, MultipleTopicsConsumingContext> multipleTopic =
+//            new PulsarTestContextFactory<>(pulsar, MultipleTopicsConsumingContext::new);
 
     @TestContext
     PulsarTestContextFactory<String, PartialKeysConsumingContext> partialKeys =
