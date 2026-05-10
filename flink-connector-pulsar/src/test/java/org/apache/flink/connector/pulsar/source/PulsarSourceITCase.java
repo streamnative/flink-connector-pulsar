@@ -231,7 +231,7 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
                     .append(split.records.size())
                     .append(")");
             if (split.hasNext()) {
-                builder.append(", next expected: ").append(split.current());
+                builder.append(", next expected: ").append(split.records());
             }
         }
         return builder.toString();
@@ -251,6 +251,10 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
 
         private String current() {
             return records.get(offset);
+        }
+
+        private String records() {
+            return records.toString();
         }
 
         private void forward() {
