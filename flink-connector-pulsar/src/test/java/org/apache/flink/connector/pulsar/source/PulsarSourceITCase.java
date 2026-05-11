@@ -87,7 +87,7 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
     protected void checkResultWithSemantic(
             CloseableIterator<String> resultIterator,
             List<List<String>> testData,
-            org.apache.flink.core.execution.CheckpointingMode semantic,
+            CheckpointingMode semantic,
             Integer limit) {
         if (limit == null) {
             super.checkResultWithSemantic(resultIterator, testData, semantic, null);
@@ -142,7 +142,7 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
     private static void assertLimitedSourceResult(
             CloseableIterator<String> resultIterator,
             List<List<String>> testData,
-            org.apache.flink.core.execution.CheckpointingMode semantic,
+            CheckpointingMode semantic,
             int limit,
             AtomicInteger receivedRecords,
             AtomicReference<String> progress) {
@@ -174,7 +174,7 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
                         String.format(
                                 "matched record %d/%d from split %d: %s",
                                 matchedRecords, limit, matchedSplit, record));
-            } else if (semantic == org.apache.flink.core.execution.CheckpointingMode.AT_LEAST_ONCE
+            } else if (semantic == CheckpointingMode.AT_LEAST_ONCE
                     && containsRecord(testData, record)) {
                 progress.set(
                         String.format(
