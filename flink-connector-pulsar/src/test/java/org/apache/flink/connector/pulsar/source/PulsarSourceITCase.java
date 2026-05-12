@@ -149,17 +149,17 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
             List<List<String>> testData,
             org.apache.flink.core.execution.CheckpointingMode semantic,
             Integer limit) {
-        final int limit1 =
-                testData.stream()
-                        .map(l -> l == null ? 0 : l.size())
-                        .mapToInt(Integer::intValue)
-                        .sum();
-        Runnable runnable =
-                () ->
-                        new SimpleCollectIteratorAssert<>(resultIterator)
-                                .withNumRecordsLimit(limit1)
-                                .matchesRecordsFromSource(testData, semantic);
+        if (limit != null) {
+            Runnable runnable =
+                    () ->
+                            new SimpleCollectIteratorAssert<>(resultIterator)
+                                    .withNumRecordsLimit(limit)
+                                    .matchesRecordsFromSource(testData, semantic);
 
-        assertThatFuture(runAsync(runnable)).eventuallySucceeds();
+            assertThatFuture(runAsync(runnable)).eventuallySucceeds();
+        } else {
+            new SimpleCollectIteratorAssert<>(resultIterator)
+                    .matchesRecordsFromSource(testData, semantic);
+        }
     }
 }
