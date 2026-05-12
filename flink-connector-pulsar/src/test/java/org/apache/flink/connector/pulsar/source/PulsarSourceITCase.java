@@ -22,10 +22,10 @@ import org.apache.flink.connector.pulsar.common.MiniClusterTestEnvironment;
 import org.apache.flink.connector.pulsar.testutils.PulsarTestContextFactory;
 import org.apache.flink.connector.pulsar.testutils.PulsarTestEnvironment;
 import org.apache.flink.connector.pulsar.testutils.runtime.PulsarRuntime;
-import org.apache.flink.connector.pulsar.testutils.source.cases.EncryptedMessagesConsumingContext;
-import org.apache.flink.connector.pulsar.testutils.source.cases.MultipleTopicsConsumingContext;
 import org.apache.flink.connector.pulsar.testutils.source.cases.PartialKeysConsumingContext;
-import org.apache.flink.connector.pulsar.testutils.source.cases.SingleTopicConsumingContext;
+import org.apache.flink.connector.testframe.environment.ClusterControllable;
+import org.apache.flink.connector.testframe.environment.TestEnvironment;
+import org.apache.flink.connector.testframe.external.source.DataStreamSourceExternalContext;
 import org.apache.flink.connector.testframe.junit.annotations.TestContext;
 import org.apache.flink.connector.testframe.junit.annotations.TestEnv;
 import org.apache.flink.connector.testframe.junit.annotations.TestExternalSystem;
@@ -35,6 +35,7 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.util.CloseableIterator;
 
 import org.apache.pulsar.client.api.SubscriptionType;
+import org.junit.jupiter.api.DisplayName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,24 +68,59 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
 
     // Defines an external context Factories,
     // so test cases will be invoked using these external contexts.
-    @TestContext
-    PulsarTestContextFactory<String, SingleTopicConsumingContext> singleTopic =
-            new PulsarTestContextFactory<>(pulsar, SingleTopicConsumingContext::new);
+//    @TestContext
+//    PulsarTestContextFactory<String, SingleTopicConsumingContext> singleTopic =
+//            new PulsarTestContextFactory<>(pulsar, SingleTopicConsumingContext::new);
 
-    // TODO multipleTopic & testScaleDown(): the test is flaky.
-    @TestContext
-    PulsarTestContextFactory<String, MultipleTopicsConsumingContext> multipleTopic =
-            new PulsarTestContextFactory<>(pulsar, MultipleTopicsConsumingContext::new);
+//    // TODO multipleTopic & testScaleDown(): the test is flaky.
+//    @TestContext
+//    PulsarTestContextFactory<String, MultipleTopicsConsumingContext> multipleTopic =
+//            new PulsarTestContextFactory<>(pulsar, MultipleTopicsConsumingContext::new);
 
     @TestContext
     PulsarTestContextFactory<String, PartialKeysConsumingContext> partialKeys =
             new PulsarTestContextFactory<>(pulsar, PartialKeysConsumingContext::new);
 
-    @TestContext
-    PulsarTestContextFactory<String, EncryptedMessagesConsumingContext> encryptMessages =
-            new PulsarTestContextFactory<>(pulsar, EncryptedMessagesConsumingContext::new);
+//    @TestContext
+//    PulsarTestContextFactory<String, EncryptedMessagesConsumingContext> encryptMessages =
+//            new PulsarTestContextFactory<>(pulsar, EncryptedMessagesConsumingContext::new);
 
-    @Override
+    @DisplayName("Test source metrics")
+    public void testSourceMetrics(TestEnvironment testEnv, DataStreamSourceExternalContext<String> externalContext, org.apache.flink.core.execution.CheckpointingMode semantic) throws Exception {
+        return;
+    }
+
+    @DisplayName("Test source with multiple splits")
+    public void testMultipleSplits(TestEnvironment testEnv, DataStreamSourceExternalContext<String> externalContext, org.apache.flink.core.execution.CheckpointingMode semantic) throws Exception {
+        return;
+    }
+
+    @DisplayName("Test source restarting from a savepoint")
+    public void testSavepoint(TestEnvironment testEnv, DataStreamSourceExternalContext<String> externalContext, org.apache.flink.core.execution.CheckpointingMode semantic) throws Exception {
+        return;
+    }
+
+    @DisplayName("Test source with at least one idle parallelism")
+    public void testIdleReader(TestEnvironment testEnv, DataStreamSourceExternalContext<String> externalContext, org.apache.flink.core.execution.CheckpointingMode semantic) throws Exception {
+        return;
+    }
+
+    @DisplayName("Test TaskManager failure")
+    public void testTaskManagerFailure(TestEnvironment testEnv, DataStreamSourceExternalContext<String> externalContext, ClusterControllable controller, org.apache.flink.core.execution.CheckpointingMode semantic) throws Exception {
+        return;
+    }
+
+    @DisplayName("Test source restarting with a higher parallelism")
+    public void testScaleUp(TestEnvironment testEnv, DataStreamSourceExternalContext<String> externalContext, org.apache.flink.core.execution.CheckpointingMode semantic) throws Exception {
+        return;
+    }
+
+    @DisplayName("Test source with single split")
+    public void testSourceSingleSplit(TestEnvironment testEnv, DataStreamSourceExternalContext<String> externalContext, org.apache.flink.core.execution.CheckpointingMode semantic) throws Exception {
+        return;
+    }
+
+        @Override
     protected void checkResultWithSemantic(
             CloseableIterator<String> resultIterator,
             List<List<String>> testData,

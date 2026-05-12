@@ -56,4 +56,8 @@ public class PulsarPartitionDataWriter<T> implements ExternalSystemSplitDataWrit
     public void close() {
         // Nothing to do.
     }
+
+    public String getFullTopicName() {
+        return fullTopicName;
+    }
 }
