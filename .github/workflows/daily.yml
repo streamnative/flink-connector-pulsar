@@ -61,4 +61,4 @@ jobs:
       connector_branch: ${{ matrix.flink_branches.branch }}
       run_dependency_convergence: false
       timeout_global: 120
-      timeout_test: 80
+      timeout_test: 50

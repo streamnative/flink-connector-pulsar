@@ -22,6 +22,8 @@ import org.apache.flink.connector.pulsar.common.MiniClusterTestEnvironment;
 import org.apache.flink.connector.pulsar.testutils.PulsarTestContextFactory;
 import org.apache.flink.connector.pulsar.testutils.PulsarTestEnvironment;
 import org.apache.flink.connector.pulsar.testutils.runtime.PulsarRuntime;
+import org.apache.flink.connector.pulsar.testutils.source.cases.EncryptedMessagesConsumingContext;
+import org.apache.flink.connector.pulsar.testutils.source.cases.MultipleTopicsConsumingContext;
 import org.apache.flink.connector.pulsar.testutils.source.cases.PartialKeysConsumingContext;
 import org.apache.flink.connector.testframe.environment.ClusterControllable;
 import org.apache.flink.connector.testframe.environment.TestEnvironment;
@@ -72,18 +74,18 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
     //    PulsarTestContextFactory<String, SingleTopicConsumingContext> singleTopic =
     //            new PulsarTestContextFactory<>(pulsar, SingleTopicConsumingContext::new);
 
-    //    // TODO multipleTopic & testScaleDown(): the test is flaky.
-    //    @TestContext
-    //    PulsarTestContextFactory<String, MultipleTopicsConsumingContext> multipleTopic =
-    //            new PulsarTestContextFactory<>(pulsar, MultipleTopicsConsumingContext::new);
+    // TODO multipleTopic & testScaleDown(): the test is flaky.
+    @TestContext
+    PulsarTestContextFactory<String, MultipleTopicsConsumingContext> multipleTopic =
+            new PulsarTestContextFactory<>(pulsar, MultipleTopicsConsumingContext::new);
 
     @TestContext
     PulsarTestContextFactory<String, PartialKeysConsumingContext> partialKeys =
             new PulsarTestContextFactory<>(pulsar, PartialKeysConsumingContext::new);
 
-    //    @TestContext
-    //    PulsarTestContextFactory<String, EncryptedMessagesConsumingContext> encryptMessages =
-    //            new PulsarTestContextFactory<>(pulsar, EncryptedMessagesConsumingContext::new);
+    @TestContext
+    PulsarTestContextFactory<String, EncryptedMessagesConsumingContext> encryptMessages =
+            new PulsarTestContextFactory<>(pulsar, EncryptedMessagesConsumingContext::new);
 
     @DisplayName("Test source metrics")
     public void testSourceMetrics(
