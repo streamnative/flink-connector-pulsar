@@ -19,15 +19,14 @@
 package org.apache.flink.connector.pulsar.source;
 
 import org.apache.flink.connector.pulsar.common.MiniClusterTestEnvironment;
+import org.apache.flink.connector.pulsar.common.utils.SimpleCollectIteratorAssert;
 import org.apache.flink.connector.pulsar.testutils.PulsarTestContextFactory;
 import org.apache.flink.connector.pulsar.testutils.PulsarTestEnvironment;
 import org.apache.flink.connector.pulsar.testutils.runtime.PulsarRuntime;
 import org.apache.flink.connector.pulsar.testutils.source.cases.EncryptedMessagesConsumingContext;
 import org.apache.flink.connector.pulsar.testutils.source.cases.MultipleTopicsConsumingContext;
 import org.apache.flink.connector.pulsar.testutils.source.cases.PartialKeysConsumingContext;
-import org.apache.flink.connector.testframe.environment.ClusterControllable;
-import org.apache.flink.connector.testframe.environment.TestEnvironment;
-import org.apache.flink.connector.testframe.external.source.DataStreamSourceExternalContext;
+import org.apache.flink.connector.pulsar.testutils.source.cases.SingleTopicConsumingContext;
 import org.apache.flink.connector.testframe.junit.annotations.TestContext;
 import org.apache.flink.connector.testframe.junit.annotations.TestEnv;
 import org.apache.flink.connector.testframe.junit.annotations.TestExternalSystem;
@@ -37,17 +36,11 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.util.CloseableIterator;
 
 import org.apache.pulsar.client.api.SubscriptionType;
-import org.junit.jupiter.api.DisplayName;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.concurrent.CompletableFuture.runAsync;
+import static org.apache.flink.core.testutils.FlinkAssertions.assertThatFuture;
 import static org.apache.flink.streaming.api.CheckpointingMode.EXACTLY_ONCE;
 
 /**
@@ -70,11 +63,10 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
 
     // Defines an external context Factories,
     // so test cases will be invoked using these external contexts.
-    //    @TestContext
-    //    PulsarTestContextFactory<String, SingleTopicConsumingContext> singleTopic =
-    //            new PulsarTestContextFactory<>(pulsar, SingleTopicConsumingContext::new);
+    @TestContext
+    PulsarTestContextFactory<String, SingleTopicConsumingContext> singleTopic =
+            new PulsarTestContextFactory<>(pulsar, SingleTopicConsumingContext::new);
 
-    // TODO multipleTopic & testScaleDown(): the test is flaky.
     @TestContext
     PulsarTestContextFactory<String, MultipleTopicsConsumingContext> multipleTopic =
             new PulsarTestContextFactory<>(pulsar, MultipleTopicsConsumingContext::new);
@@ -87,69 +79,69 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
     PulsarTestContextFactory<String, EncryptedMessagesConsumingContext> encryptMessages =
             new PulsarTestContextFactory<>(pulsar, EncryptedMessagesConsumingContext::new);
 
-    @DisplayName("Test source metrics")
-    public void testSourceMetrics(
-            TestEnvironment testEnv,
-            DataStreamSourceExternalContext<String> externalContext,
-            org.apache.flink.core.execution.CheckpointingMode semantic)
-            throws Exception {
-        return;
-    }
-
-    @DisplayName("Test source with multiple splits")
-    public void testMultipleSplits(
-            TestEnvironment testEnv,
-            DataStreamSourceExternalContext<String> externalContext,
-            org.apache.flink.core.execution.CheckpointingMode semantic)
-            throws Exception {
-        return;
-    }
-
-    @DisplayName("Test source restarting from a savepoint")
-    public void testSavepoint(
-            TestEnvironment testEnv,
-            DataStreamSourceExternalContext<String> externalContext,
-            org.apache.flink.core.execution.CheckpointingMode semantic)
-            throws Exception {
-        return;
-    }
-
-    @DisplayName("Test source with at least one idle parallelism")
-    public void testIdleReader(
-            TestEnvironment testEnv,
-            DataStreamSourceExternalContext<String> externalContext,
-            org.apache.flink.core.execution.CheckpointingMode semantic)
-            throws Exception {
-        return;
-    }
-
-    @DisplayName("Test TaskManager failure")
-    public void testTaskManagerFailure(
-            TestEnvironment testEnv,
-            DataStreamSourceExternalContext<String> externalContext,
-            ClusterControllable controller,
-            org.apache.flink.core.execution.CheckpointingMode semantic)
-            throws Exception {
-        return;
-    }
-
-    @DisplayName("Test source restarting with a higher parallelism")
-    public void testScaleUp(
-            TestEnvironment testEnv,
-            DataStreamSourceExternalContext<String> externalContext,
-            org.apache.flink.core.execution.CheckpointingMode semantic)
-            throws Exception {
-        return;
-    }
-
-    @DisplayName("Test source with single split")
-    public void testSourceSingleSplit(
-            TestEnvironment testEnv,
-            DataStreamSourceExternalContext<String> externalContext,
-            org.apache.flink.core.execution.CheckpointingMode semantic)
-            throws Exception {
-        return;
-    }
+//    @DisplayName("Test source metrics")
+//    public void testSourceMetrics(
+//            TestEnvironment testEnv,
+//            DataStreamSourceExternalContext<String> externalContext,
+//            org.apache.flink.core.execution.CheckpointingMode semantic)
+//            throws Exception {
+//        return;
+//    }
+//
+//    @DisplayName("Test source with multiple splits")
+//    public void testMultipleSplits(
+//            TestEnvironment testEnv,
+//            DataStreamSourceExternalContext<String> externalContext,
+//            org.apache.flink.core.execution.CheckpointingMode semantic)
+//            throws Exception {
+//        return;
+//    }
+//
+//    @DisplayName("Test source restarting from a savepoint")
+//    public void testSavepoint(
+//            TestEnvironment testEnv,
+//            DataStreamSourceExternalContext<String> externalContext,
+//            org.apache.flink.core.execution.CheckpointingMode semantic)
+//            throws Exception {
+//        return;
+//    }
+//
+//    @DisplayName("Test source with at least one idle parallelism")
+//    public void testIdleReader(
+//            TestEnvironment testEnv,
+//            DataStreamSourceExternalContext<String> externalContext,
+//            org.apache.flink.core.execution.CheckpointingMode semantic)
+//            throws Exception {
+//        return;
+//    }
+//
+//    @DisplayName("Test TaskManager failure")
+//    public void testTaskManagerFailure(
+//            TestEnvironment testEnv,
+//            DataStreamSourceExternalContext<String> externalContext,
+//            ClusterControllable controller,
+//            org.apache.flink.core.execution.CheckpointingMode semantic)
+//            throws Exception {
+//        return;
+//    }
+//
+//    @DisplayName("Test source restarting with a higher parallelism")
+//    public void testScaleUp(
+//            TestEnvironment testEnv,
+//            DataStreamSourceExternalContext<String> externalContext,
+//            org.apache.flink.core.execution.CheckpointingMode semantic)
+//            throws Exception {
+//        return;
+//    }
+//
+//    @DisplayName("Test source with single split")
+//    public void testSourceSingleSplit(
+//            TestEnvironment testEnv,
+//            DataStreamSourceExternalContext<String> externalContext,
+//            org.apache.flink.core.execution.CheckpointingMode semantic)
+//            throws Exception {
+//        return;
+//    }
 
     @Override
     protected void checkResultWithSemantic(
@@ -157,175 +149,13 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
             List<List<String>> testData,
             org.apache.flink.core.execution.CheckpointingMode semantic,
             Integer limit) {
-        if (limit == null) {
-            super.checkResultWithSemantic(resultIterator, testData, semantic, null);
-            return;
-        }
+        final int limit1 = testData.stream().map(l -> l == null ? 0 : l.size()).mapToInt(Integer::intValue).sum();
+        Runnable runnable =
+                () ->
+                        new SimpleCollectIteratorAssert(resultIterator)
+                                .withNumRecordsLimit(limit1)
+                                .matchesRecordsFromSource(testData, semantic);
 
-        AtomicInteger receivedRecords = new AtomicInteger();
-        AtomicReference<String> progress = new AtomicReference<>("no records received yet");
-        CompletableFuture<Void> assertion =
-                CompletableFuture.runAsync(
-                        () ->
-                                assertLimitedSourceResult(
-                                        resultIterator,
-                                        testData,
-                                        semantic,
-                                        limit,
-                                        receivedRecords,
-                                        progress));
-
-        try {
-            assertion.get(RESULT_ASSERTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            try {
-                resultIterator.close();
-            } catch (Exception closeException) {
-                e.addSuppressed(closeException);
-            }
-            assertion.cancel(true);
-            throw new AssertionError(
-                    String.format(
-                            "Timed out after %d seconds while waiting for %d source records; "
-                                    + "received %d records, progress: %s",
-                            RESULT_ASSERTION_TIMEOUT_SECONDS,
-                            limit,
-                            receivedRecords.get(),
-                            progress.get()),
-                    e);
-        } catch (ExecutionException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof AssertionError) {
-                throw (AssertionError) cause;
-            }
-            throw new AssertionError("Failed to assert source records", cause);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new AssertionError("Interrupted while asserting source records", e);
-        } catch (Exception e) {
-            throw new AssertionError("Failed to assert source records", e);
-        }
-    }
-
-    private static void assertLimitedSourceResult(
-            CloseableIterator<String> resultIterator,
-            List<List<String>> testData,
-            org.apache.flink.core.execution.CheckpointingMode semantic,
-            int limit,
-            AtomicInteger receivedRecords,
-            AtomicReference<String> progress) {
-        List<SplitProgress> splits = toSplitProgress(testData);
-        int totalRecords = testData.stream().mapToInt(List::size).sum();
-        if (limit > totalRecords) {
-            throw new IllegalArgumentException(
-                    "Limit validation size should be less than total number of records "
-                            + "from source");
-        }
-
-        int matchedRecords = 0;
-
-        while (matchedRecords < limit) {
-            if (!resultIterator.hasNext()) {
-                throw new AssertionError(
-                        String.format(
-                                "Expected %d source records, but iterator ended after %d "
-                                        + "records.%n%s",
-                                limit, receivedRecords.get(), describeProgress(splits)));
-            }
-
-            String record = resultIterator.next();
-            receivedRecords.incrementAndGet();
-            int matchedSplit = matchThenForward(splits, record);
-            if (matchedSplit >= 0) {
-                matchedRecords++;
-                progress.set(
-                        String.format(
-                                "matched record %d/%d from split %d: %s",
-                                matchedRecords, limit, matchedSplit, record));
-            } else if (semantic == org.apache.flink.core.execution.CheckpointingMode.AT_LEAST_ONCE
-                    && containsRecord(testData, record)) {
-                progress.set(
-                        String.format(
-                                "accepted duplicate record after %d matched records: %s",
-                                matchedRecords, record));
-            } else {
-                throw new AssertionError(
-                        String.format(
-                                "Unexpected record '%s' at received position %d.%n%s",
-                                record, receivedRecords.get() - 1, describeProgress(splits)));
-            }
-        }
-    }
-
-    private static List<SplitProgress> toSplitProgress(List<List<String>> testData) {
-        List<SplitProgress> splits = new ArrayList<>();
-        for (List<String> split : testData) {
-            splits.add(new SplitProgress(split));
-        }
-        return splits;
-    }
-
-    private static int matchThenForward(List<SplitProgress> splits, String record) {
-        for (int i = 0; i < splits.size(); i++) {
-            SplitProgress split = splits.get(i);
-            if (split.hasNext() && record.equals(split.current())) {
-                split.forward();
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private static boolean containsRecord(List<List<String>> testData, String record) {
-        for (List<String> split : testData) {
-            if (split.contains(record)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static String describeProgress(List<SplitProgress> splits) {
-        StringBuilder builder = new StringBuilder("Current split validation progress:");
-        for (int i = 0; i < splits.size(); i++) {
-            SplitProgress split = splits.get(i);
-            builder.append(System.lineSeparator())
-                    .append("Split ")
-                    .append(i)
-                    .append(" (")
-                    .append(split.offset)
-                    .append("/")
-                    .append(split.records.size())
-                    .append(")");
-            if (split.hasNext()) {
-                builder.append(", next expected: ").append(split.records());
-            }
-        }
-        return builder.toString();
-    }
-
-    private static class SplitProgress {
-        private final List<String> records;
-        private int offset;
-
-        private SplitProgress(List<String> records) {
-            this.records = records;
-        }
-
-        private boolean hasNext() {
-            return offset < records.size();
-        }
-
-        private String current() {
-            return records.get(offset);
-        }
-
-        private String records() {
-            return records.toString();
-        }
-
-        private void forward() {
-            offset++;
-        }
+        assertThatFuture(runAsync(runnable)).eventuallySucceeds();
     }
 }
