@@ -89,7 +89,9 @@ public class PulsarPartitionSplitSerializer
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         for (int i = 0; i <= stackTraceElements.length && i < 10; i++) {
             if (stackTraceElements[i].toString().contains("snapshotState")) {
-                log.info("===> Checkpoint: snapshot state for split {} - {}", split.getPartition().getFullTopicName(),
+                log.info(
+                        "===> Checkpoint: snapshot state for split {} - {}",
+                        split.getPartition().getFullTopicName(),
                         split.getLatestConsumedId());
                 break;
             }
@@ -147,7 +149,9 @@ public class PulsarPartitionSplitSerializer
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         for (int i = 0; i <= stackTraceElements.length && i < 20; i++) {
             if (stackTraceElements[i].toString().contains("restoreStateAndGates")) {
-                log.info("===> Restore snapshot state for split {} - {}", partition.getFullTopicName(),
+                log.info(
+                        "===> Restore snapshot state for split {} - {}",
+                        partition.getFullTopicName(),
                         latestConsumedId);
                 break;
             }

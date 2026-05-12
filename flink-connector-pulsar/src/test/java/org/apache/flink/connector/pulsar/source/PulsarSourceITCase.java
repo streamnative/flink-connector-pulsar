@@ -68,59 +68,88 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
 
     // Defines an external context Factories,
     // so test cases will be invoked using these external contexts.
-//    @TestContext
-//    PulsarTestContextFactory<String, SingleTopicConsumingContext> singleTopic =
-//            new PulsarTestContextFactory<>(pulsar, SingleTopicConsumingContext::new);
+    //    @TestContext
+    //    PulsarTestContextFactory<String, SingleTopicConsumingContext> singleTopic =
+    //            new PulsarTestContextFactory<>(pulsar, SingleTopicConsumingContext::new);
 
-//    // TODO multipleTopic & testScaleDown(): the test is flaky.
-//    @TestContext
-//    PulsarTestContextFactory<String, MultipleTopicsConsumingContext> multipleTopic =
-//            new PulsarTestContextFactory<>(pulsar, MultipleTopicsConsumingContext::new);
+    //    // TODO multipleTopic & testScaleDown(): the test is flaky.
+    //    @TestContext
+    //    PulsarTestContextFactory<String, MultipleTopicsConsumingContext> multipleTopic =
+    //            new PulsarTestContextFactory<>(pulsar, MultipleTopicsConsumingContext::new);
 
     @TestContext
     PulsarTestContextFactory<String, PartialKeysConsumingContext> partialKeys =
             new PulsarTestContextFactory<>(pulsar, PartialKeysConsumingContext::new);
 
-//    @TestContext
-//    PulsarTestContextFactory<String, EncryptedMessagesConsumingContext> encryptMessages =
-//            new PulsarTestContextFactory<>(pulsar, EncryptedMessagesConsumingContext::new);
+    //    @TestContext
+    //    PulsarTestContextFactory<String, EncryptedMessagesConsumingContext> encryptMessages =
+    //            new PulsarTestContextFactory<>(pulsar, EncryptedMessagesConsumingContext::new);
 
     @DisplayName("Test source metrics")
-    public void testSourceMetrics(TestEnvironment testEnv, DataStreamSourceExternalContext<String> externalContext, org.apache.flink.core.execution.CheckpointingMode semantic) throws Exception {
+    public void testSourceMetrics(
+            TestEnvironment testEnv,
+            DataStreamSourceExternalContext<String> externalContext,
+            org.apache.flink.core.execution.CheckpointingMode semantic)
+            throws Exception {
         return;
     }
 
     @DisplayName("Test source with multiple splits")
-    public void testMultipleSplits(TestEnvironment testEnv, DataStreamSourceExternalContext<String> externalContext, org.apache.flink.core.execution.CheckpointingMode semantic) throws Exception {
+    public void testMultipleSplits(
+            TestEnvironment testEnv,
+            DataStreamSourceExternalContext<String> externalContext,
+            org.apache.flink.core.execution.CheckpointingMode semantic)
+            throws Exception {
         return;
     }
 
     @DisplayName("Test source restarting from a savepoint")
-    public void testSavepoint(TestEnvironment testEnv, DataStreamSourceExternalContext<String> externalContext, org.apache.flink.core.execution.CheckpointingMode semantic) throws Exception {
+    public void testSavepoint(
+            TestEnvironment testEnv,
+            DataStreamSourceExternalContext<String> externalContext,
+            org.apache.flink.core.execution.CheckpointingMode semantic)
+            throws Exception {
         return;
     }
 
     @DisplayName("Test source with at least one idle parallelism")
-    public void testIdleReader(TestEnvironment testEnv, DataStreamSourceExternalContext<String> externalContext, org.apache.flink.core.execution.CheckpointingMode semantic) throws Exception {
+    public void testIdleReader(
+            TestEnvironment testEnv,
+            DataStreamSourceExternalContext<String> externalContext,
+            org.apache.flink.core.execution.CheckpointingMode semantic)
+            throws Exception {
         return;
     }
 
     @DisplayName("Test TaskManager failure")
-    public void testTaskManagerFailure(TestEnvironment testEnv, DataStreamSourceExternalContext<String> externalContext, ClusterControllable controller, org.apache.flink.core.execution.CheckpointingMode semantic) throws Exception {
+    public void testTaskManagerFailure(
+            TestEnvironment testEnv,
+            DataStreamSourceExternalContext<String> externalContext,
+            ClusterControllable controller,
+            org.apache.flink.core.execution.CheckpointingMode semantic)
+            throws Exception {
         return;
     }
 
     @DisplayName("Test source restarting with a higher parallelism")
-    public void testScaleUp(TestEnvironment testEnv, DataStreamSourceExternalContext<String> externalContext, org.apache.flink.core.execution.CheckpointingMode semantic) throws Exception {
+    public void testScaleUp(
+            TestEnvironment testEnv,
+            DataStreamSourceExternalContext<String> externalContext,
+            org.apache.flink.core.execution.CheckpointingMode semantic)
+            throws Exception {
         return;
     }
 
     @DisplayName("Test source with single split")
-    public void testSourceSingleSplit(TestEnvironment testEnv, DataStreamSourceExternalContext<String> externalContext, org.apache.flink.core.execution.CheckpointingMode semantic) throws Exception {
+    public void testSourceSingleSplit(
+            TestEnvironment testEnv,
+            DataStreamSourceExternalContext<String> externalContext,
+            org.apache.flink.core.execution.CheckpointingMode semantic)
+            throws Exception {
         return;
     }
 
-        @Override
+    @Override
     protected void checkResultWithSemantic(
             CloseableIterator<String> resultIterator,
             List<List<String>> testData,
