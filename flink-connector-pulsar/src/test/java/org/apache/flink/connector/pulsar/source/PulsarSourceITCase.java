@@ -79,69 +79,69 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
     PulsarTestContextFactory<String, EncryptedMessagesConsumingContext> encryptMessages =
             new PulsarTestContextFactory<>(pulsar, EncryptedMessagesConsumingContext::new);
 
-//    @DisplayName("Test source metrics")
-//    public void testSourceMetrics(
-//            TestEnvironment testEnv,
-//            DataStreamSourceExternalContext<String> externalContext,
-//            org.apache.flink.core.execution.CheckpointingMode semantic)
-//            throws Exception {
-//        return;
-//    }
-//
-//    @DisplayName("Test source with multiple splits")
-//    public void testMultipleSplits(
-//            TestEnvironment testEnv,
-//            DataStreamSourceExternalContext<String> externalContext,
-//            org.apache.flink.core.execution.CheckpointingMode semantic)
-//            throws Exception {
-//        return;
-//    }
-//
-//    @DisplayName("Test source restarting from a savepoint")
-//    public void testSavepoint(
-//            TestEnvironment testEnv,
-//            DataStreamSourceExternalContext<String> externalContext,
-//            org.apache.flink.core.execution.CheckpointingMode semantic)
-//            throws Exception {
-//        return;
-//    }
-//
-//    @DisplayName("Test source with at least one idle parallelism")
-//    public void testIdleReader(
-//            TestEnvironment testEnv,
-//            DataStreamSourceExternalContext<String> externalContext,
-//            org.apache.flink.core.execution.CheckpointingMode semantic)
-//            throws Exception {
-//        return;
-//    }
-//
-//    @DisplayName("Test TaskManager failure")
-//    public void testTaskManagerFailure(
-//            TestEnvironment testEnv,
-//            DataStreamSourceExternalContext<String> externalContext,
-//            ClusterControllable controller,
-//            org.apache.flink.core.execution.CheckpointingMode semantic)
-//            throws Exception {
-//        return;
-//    }
-//
-//    @DisplayName("Test source restarting with a higher parallelism")
-//    public void testScaleUp(
-//            TestEnvironment testEnv,
-//            DataStreamSourceExternalContext<String> externalContext,
-//            org.apache.flink.core.execution.CheckpointingMode semantic)
-//            throws Exception {
-//        return;
-//    }
-//
-//    @DisplayName("Test source with single split")
-//    public void testSourceSingleSplit(
-//            TestEnvironment testEnv,
-//            DataStreamSourceExternalContext<String> externalContext,
-//            org.apache.flink.core.execution.CheckpointingMode semantic)
-//            throws Exception {
-//        return;
-//    }
+    //    @DisplayName("Test source metrics")
+    //    public void testSourceMetrics(
+    //            TestEnvironment testEnv,
+    //            DataStreamSourceExternalContext<String> externalContext,
+    //            org.apache.flink.core.execution.CheckpointingMode semantic)
+    //            throws Exception {
+    //        return;
+    //    }
+    //
+    //    @DisplayName("Test source with multiple splits")
+    //    public void testMultipleSplits(
+    //            TestEnvironment testEnv,
+    //            DataStreamSourceExternalContext<String> externalContext,
+    //            org.apache.flink.core.execution.CheckpointingMode semantic)
+    //            throws Exception {
+    //        return;
+    //    }
+    //
+    //    @DisplayName("Test source restarting from a savepoint")
+    //    public void testSavepoint(
+    //            TestEnvironment testEnv,
+    //            DataStreamSourceExternalContext<String> externalContext,
+    //            org.apache.flink.core.execution.CheckpointingMode semantic)
+    //            throws Exception {
+    //        return;
+    //    }
+    //
+    //    @DisplayName("Test source with at least one idle parallelism")
+    //    public void testIdleReader(
+    //            TestEnvironment testEnv,
+    //            DataStreamSourceExternalContext<String> externalContext,
+    //            org.apache.flink.core.execution.CheckpointingMode semantic)
+    //            throws Exception {
+    //        return;
+    //    }
+    //
+    //    @DisplayName("Test TaskManager failure")
+    //    public void testTaskManagerFailure(
+    //            TestEnvironment testEnv,
+    //            DataStreamSourceExternalContext<String> externalContext,
+    //            ClusterControllable controller,
+    //            org.apache.flink.core.execution.CheckpointingMode semantic)
+    //            throws Exception {
+    //        return;
+    //    }
+    //
+    //    @DisplayName("Test source restarting with a higher parallelism")
+    //    public void testScaleUp(
+    //            TestEnvironment testEnv,
+    //            DataStreamSourceExternalContext<String> externalContext,
+    //            org.apache.flink.core.execution.CheckpointingMode semantic)
+    //            throws Exception {
+    //        return;
+    //    }
+    //
+    //    @DisplayName("Test source with single split")
+    //    public void testSourceSingleSplit(
+    //            TestEnvironment testEnv,
+    //            DataStreamSourceExternalContext<String> externalContext,
+    //            org.apache.flink.core.execution.CheckpointingMode semantic)
+    //            throws Exception {
+    //        return;
+    //    }
 
     @Override
     protected void checkResultWithSemantic(
@@ -149,10 +149,14 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
             List<List<String>> testData,
             org.apache.flink.core.execution.CheckpointingMode semantic,
             Integer limit) {
-        final int limit1 = testData.stream().map(l -> l == null ? 0 : l.size()).mapToInt(Integer::intValue).sum();
+        final int limit1 =
+                testData.stream()
+                        .map(l -> l == null ? 0 : l.size())
+                        .mapToInt(Integer::intValue)
+                        .sum();
         Runnable runnable =
                 () ->
-                        new SimpleCollectIteratorAssert(resultIterator)
+                        new SimpleCollectIteratorAssert<>(resultIterator)
                                 .withNumRecordsLimit(limit1)
                                 .matchesRecordsFromSource(testData, semantic);
 
