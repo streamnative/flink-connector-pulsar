@@ -18,6 +18,7 @@
 
 package org.apache.flink.connector.pulsar.source.reader;
 
+import java.util.concurrent.CompletableFuture;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.common.time.Deadline;
@@ -129,6 +130,7 @@ public class PulsarPartitionSplitReader
         Deadline deadline = Deadline.fromNow(sourceConfiguration.getMaxFetchTime());
 
         // Consume messages from pulsar until it was woken up by flink reader.
+        CompletableFuture<Message<byte[]>> msgFuture = null;
         for (int messageNum = 0;
                 messageNum < sourceConfiguration.getMaxFetchRecords() && deadline.hasTimeLeft();
                 messageNum++) {
@@ -137,8 +139,21 @@ public class PulsarPartitionSplitReader
                 if (fetchTime <= 0) {
                     fetchTime = (int) deadline.timeLeftIfAny().toMillis();
                 }
-
-                Message<byte[]> message = pulsarConsumer.receive(fetchTime, TimeUnit.MILLISECONDS);
+                // TODO add explanation.
+                msgFuture = pulsarConsumer.receiveAsync();
+                Message<byte[]> message = null;
+                try {
+                    message = msgFuture.get(fetchTime, TimeUnit.MILLISECONDS);
+                } catch (TimeoutException e) {
+                    if (msgFuture.completeExceptionally(e)) {
+                        throw e;
+                    } else if (!msgFuture.isCompletedExceptionally()) {
+                        message = msgFuture.get();
+                    } else {
+                        // throws error.
+                        msgFuture.get();
+                    }
+                }
                 if (message == null) {
                     break;
                 }
