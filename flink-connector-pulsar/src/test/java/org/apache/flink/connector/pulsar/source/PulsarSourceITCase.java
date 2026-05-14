@@ -19,9 +19,9 @@
 package org.apache.flink.connector.pulsar.source;
 
 import org.apache.flink.connector.pulsar.common.MiniClusterTestEnvironment;
-import org.apache.flink.connector.pulsar.common.utils.SimpleCollectIteratorAssert;
 import org.apache.flink.connector.pulsar.testutils.PulsarTestContextFactory;
 import org.apache.flink.connector.pulsar.testutils.PulsarTestEnvironment;
+import org.apache.flink.connector.pulsar.testutils.SimpleCollectIteratorAssert;
 import org.apache.flink.connector.pulsar.testutils.runtime.PulsarRuntime;
 import org.apache.flink.connector.pulsar.testutils.source.cases.EncryptedMessagesConsumingContext;
 import org.apache.flink.connector.pulsar.testutils.source.cases.MultipleTopicsConsumingContext;
