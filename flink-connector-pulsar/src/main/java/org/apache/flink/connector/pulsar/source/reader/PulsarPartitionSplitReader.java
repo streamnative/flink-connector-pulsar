@@ -132,6 +132,7 @@ public class PulsarPartitionSplitReader
 
         // Consume messages from pulsar until it was woken up by flink reader.
         CompletableFuture<Message<byte[]>> msgFuture = null;
+        MessageIdAdv latestMessageIdInTheCurrentFetch = null;
         for (int messageNum = 0;
                 messageNum < sourceConfiguration.getMaxFetchRecords() && deadline.hasTimeLeft(); ) {
             try {
@@ -168,12 +169,17 @@ public class PulsarPartitionSplitReader
                         msgId.getEntryId(),
                         msgId.getBatchIndex(),
                         msgId.getBatchSize());
+                if (latestMessageIdInTheCurrentFetch != null
+                        && compareMessageIds(latestMessageIdInTheCurrentFetch, msgId) >= 0) {
+                    continue;
+                }
                 if (registeredSplit.getLatestConsumedId() != null
                         && compareMessageIds(
                                         (MessageIdAdv) registeredSplit.getLatestConsumedId(), msgId)
                                 >= 0) {
                     continue;
                 }
+                latestMessageIdInTheCurrentFetch = msgId;
 
                 StopCondition condition = stopCursor.shouldStop(message);
 
