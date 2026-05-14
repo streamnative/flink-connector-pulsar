@@ -39,7 +39,7 @@ public class SimpleCollectIteratorAssert<T>
         extends AbstractAssert<SimpleCollectIteratorAssert<T>, Iterator<T>> {
 
     private final Iterator<T> collectorIterator;
-    private final List<RecordsFromSplit<T>> recordsFromSplits = new ArrayList<>();
+    private final List<RecordsFromSplit<T>> expectedRecordsFromSplits = new ArrayList<>();
     private int totalNumRecords;
     private Integer limit = null;
 
@@ -66,9 +66,9 @@ public class SimpleCollectIteratorAssert<T>
     }
 
     public void matchesRecordsFromSource(
-            List<List<T>> recordsBySplitsFromSource, CheckpointingMode semantic) {
-        for (List<T> recordsFromSplit : recordsBySplitsFromSource) {
-            recordsFromSplits.add(new RecordsFromSplit<>(recordsFromSplit));
+            List<List<T>> expectedData, CheckpointingMode semantic) {
+        for (List<T> recordsFromSplit : expectedData) {
+            expectedRecordsFromSplits.add(new RecordsFromSplit<>(recordsFromSplit));
             totalNumRecords += recordsFromSplit.size();
         }
 
@@ -79,10 +79,10 @@ public class SimpleCollectIteratorAssert<T>
 
         switch (semantic) {
             case AT_LEAST_ONCE:
-                compareWithAtLeastOnceSemantic(collectorIterator, recordsFromSplits);
+                compareWithAtLeastOnceSemantic(collectorIterator, expectedRecordsFromSplits);
                 break;
             case EXACTLY_ONCE:
-                compareWithExactlyOnceSemantic(collectorIterator, recordsFromSplits);
+                compareWithExactlyOnceSemantic(collectorIterator, expectedRecordsFromSplits);
                 break;
             default:
                 throw new IllegalArgumentException(
@@ -125,17 +125,17 @@ public class SimpleCollectIteratorAssert<T>
     }
 
     private void compareWithExactlyOnceSemantic(
-            Iterator<T> resultIterator, List<RecordsFromSplit<T>> recordsFromSplits) {
+            Iterator<T> resultIterator, List<RecordsFromSplit<T>> expectedData) {
         int recordCounter = 0;
         while (resultIterator.hasNext()) {
-            final T record = resultIterator.next();
-            if (!matchThenNext(record)) {
+            final T recordReceived = resultIterator.next();
+            if (!matchThenNext(recordReceived)) {
                 if (recordCounter >= totalNumRecords) {
                     failWithMessage(
                             generateMismatchDescription(
                                     String.format(
                                             "Expected to have exactly %d records in result, but received more records",
-                                            recordsFromSplits.stream()
+                                            expectedData.stream()
                                                     .mapToInt(
                                                             recordsFromSplit ->
                                                                     recordsFromSplit.records.size())
@@ -145,8 +145,8 @@ public class SimpleCollectIteratorAssert<T>
                     failWithMessage(
                             generateMismatchDescription(
                                     String.format(
-                                            "Unexpected record '%s' at position %d",
-                                            record, recordCounter),
+                                            "Unexpected record '%s' at position %d(count of matched records)",
+                                            recordReceived, recordCounter),
                                     resultIterator));
                 }
             }
@@ -160,7 +160,7 @@ public class SimpleCollectIteratorAssert<T>
                     generateMismatchDescription(
                             String.format(
                                     "Expected to have exactly %d records in result, but only received %d records",
-                                    recordsFromSplits.stream()
+                                    expectedData.stream()
                                             .mapToInt(
                                                     recordsFromSplit ->
                                                             recordsFromSplit.records.size())
@@ -173,7 +173,7 @@ public class SimpleCollectIteratorAssert<T>
     private void confirmDuplicateRead(List<T> duplicateRead) {
         for (T record : duplicateRead) {
             boolean found = false;
-            for (RecordsFromSplit<T> recordsFromSplit : recordsFromSplits) {
+            for (RecordsFromSplit<T> recordsFromSplit : expectedRecordsFromSplits) {
                 if (recordsFromSplit.records.contains(record)) {
                     found = true;
                     break;
@@ -192,7 +192,7 @@ public class SimpleCollectIteratorAssert<T>
      * @param record Record from stream
      */
     private boolean matchThenNext(T record) {
-        for (RecordsFromSplit<T> recordsFromSplit : recordsFromSplits) {
+        for (RecordsFromSplit<T> recordsFromSplit : expectedRecordsFromSplits) {
             if (!recordsFromSplit.hasNext()) {
                 continue;
             }
@@ -210,7 +210,7 @@ public class SimpleCollectIteratorAssert<T>
      * @return True if all pointers have reached the end.
      */
     private boolean hasReachedEnd() {
-        for (RecordsFromSplit<T> recordsFromSplit : recordsFromSplits) {
+        for (RecordsFromSplit<T> recordsFromSplit : expectedRecordsFromSplits) {
             if (recordsFromSplit.hasNext()) {
                 return false;
             }
@@ -223,7 +223,7 @@ public class SimpleCollectIteratorAssert<T>
         sb.append(reason).append("\n");
         sb.append("Current progress of multiple split test data validation:\n");
         int splitCounter = 0;
-        for (RecordsFromSplit<T> recordsFromSplit : recordsFromSplits) {
+        for (RecordsFromSplit<T> recordsFromSplit : expectedRecordsFromSplits) {
             sb.append(
                     String.format(
                             "Split %d (%d/%d): \n",
@@ -235,7 +235,7 @@ public class SimpleCollectIteratorAssert<T>
                     recordIndex++) {
                 sb.append(recordsFromSplit.records.get(recordIndex));
                 if (recordIndex == recordsFromSplit.offset) {
-                    sb.append("\t<----");
+                    sb.append("\t<---- failed to compare with the current record");
                 }
                 sb.append("\n");
             }

@@ -18,7 +18,6 @@
 
 package org.apache.flink.tests.util.pulsar;
 
-import java.util.List;
 import org.apache.flink.connector.pulsar.common.utils.SimpleCollectIteratorAssert;
 import org.apache.flink.connector.pulsar.testutils.source.cases.MultipleTopicsConsumingContext;
 import org.apache.flink.connector.pulsar.testutils.source.cases.PartialKeysConsumingContext;
@@ -33,6 +32,8 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.tests.util.pulsar.common.FlinkContainerUtils;
 import org.apache.flink.tests.util.pulsar.common.PulsarContainerTestEnvironment;
 import org.apache.flink.util.CloseableIterator;
+
+import java.util.List;
 
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static org.apache.flink.core.testutils.FlinkAssertions.assertThatFuture;

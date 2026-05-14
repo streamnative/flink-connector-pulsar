@@ -146,7 +146,7 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
     @Override
     protected void checkResultWithSemantic(
             CloseableIterator<String> resultIterator,
-            List<List<String>> testData,
+            List<List<String>> expectedData,
             org.apache.flink.core.execution.CheckpointingMode semantic,
             Integer limit) {
         if (limit != null) {
@@ -154,12 +154,12 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
                     () ->
                             new SimpleCollectIteratorAssert<>(resultIterator)
                                     .withNumRecordsLimit(limit)
-                                    .matchesRecordsFromSource(testData, semantic);
+                                    .matchesRecordsFromSource(expectedData, semantic);
 
             assertThatFuture(runAsync(runnable)).eventuallySucceeds();
         } else {
             new SimpleCollectIteratorAssert<>(resultIterator)
-                    .matchesRecordsFromSource(testData, semantic);
+                    .matchesRecordsFromSource(expectedData, semantic);
         }
     }
 }
