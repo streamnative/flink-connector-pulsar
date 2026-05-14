@@ -160,8 +160,13 @@ public class PulsarPartitionSplitReader
                 }
 
                 MessageIdAdv msgId = (MessageIdAdv) message.getMessageId();
-                LOG.info("{} received a message {}:{}:{}/{}.", pulsarConsumer.getTopic(), msgId.getLedgerId(),
-                        msgId.getEntryId(), msgId.getBatchIndex(), msgId.getBatchSize());
+                LOG.info(
+                        "{} received a message {}:{}:{}/{}.",
+                        pulsarConsumer.getTopic(),
+                        msgId.getLedgerId(),
+                        msgId.getEntryId(),
+                        msgId.getBatchIndex(),
+                        msgId.getBatchSize());
 
                 StopCondition condition = stopCursor.shouldStop(message);
 

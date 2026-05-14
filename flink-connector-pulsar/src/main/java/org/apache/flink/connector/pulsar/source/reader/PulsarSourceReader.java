@@ -180,8 +180,13 @@ public class PulsarSourceReader<OUT>
             MessageId latestConsumedId = split.getLatestConsumedId();
             if (latestConsumedId != null) {
                 MessageIdAdv msgId = (MessageIdAdv) latestConsumedId;
-                LOG.info("{} snapshot state for partition {}:{}:{}/{}", split.getPartition().getFullTopicName(),
-                        msgId.getLedgerId(), msgId.getEntryId(), msgId.getBatchIndex(), msgId.getBatchSize());
+                LOG.info(
+                        "{} snapshot state for partition {}:{}:{}/{}",
+                        split.getPartition().getFullTopicName(),
+                        msgId.getLedgerId(),
+                        msgId.getEntryId(),
+                        msgId.getBatchIndex(),
+                        msgId.getBatchSize());
                 cursors.put(split.getPartition(), latestConsumedId);
             } else {
                 LOG.info("{} snapshot state for partition null", split.getPartition().getFullTopicName());

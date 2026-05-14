@@ -65,8 +65,7 @@ public class SimpleCollectIteratorAssert<T>
         matchesRecordsFromSource(recordsBySplitsFromSource, convertToCheckpointingMode(semantic));
     }
 
-    public void matchesRecordsFromSource(
-            List<List<T>> expectedData, CheckpointingMode semantic) {
+    public void matchesRecordsFromSource(List<List<T>> expectedData, CheckpointingMode semantic) {
         for (List<T> recordsFromSplit : expectedData) {
             expectedRecordsFromSplits.add(new RecordsFromSplit<>(recordsFromSplit));
             totalNumRecords += recordsFromSplit.size();
