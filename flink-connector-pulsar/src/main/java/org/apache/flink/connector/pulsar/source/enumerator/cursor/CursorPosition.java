@@ -95,7 +95,7 @@ public final class CursorPosition implements Serializable {
             // Reset cursor to desired position.
             if (type == Type.TIMESTAMP) {
                 LOG.info(
-                        "{} {} reset cursor to timestamp {}",
+                        "[{}] [{}] reset cursor to timestamp {}",
                         topicName,
                         subscriptionName,
                         this.timestamp);
@@ -103,7 +103,7 @@ public final class CursorPosition implements Serializable {
             } else if (messageId instanceof ChunkMessageIdImpl) {
                 MessageIdAdv msgId = ((ChunkMessageIdImpl) messageId).getFirstChunkMessageId();
                 LOG.info(
-                        "{} {} reset cursor to chunk msg id {}:{}:{}/{}",
+                        "[{}] [{}] reset cursor to chunk msg id {}:{}:{}/{}",
                         topicName,
                         subscriptionName,
                         msgId.getLedgerId(),
@@ -114,7 +114,7 @@ public final class CursorPosition implements Serializable {
             } else {
                 MessageIdAdv msgId = (MessageIdAdv) messageId;
                 LOG.info(
-                        "{} {} reset cursor to msg id {}:{}:{}/{}",
+                        "[{}] [{}] reset cursor to msg id {}:{}:{}/{}",
                         topicName,
                         subscriptionName,
                         msgId.getLedgerId(),

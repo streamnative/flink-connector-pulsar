@@ -181,8 +181,9 @@ public class PulsarSourceReader<OUT>
             if (latestConsumedId != null) {
                 MessageIdAdv msgId = (MessageIdAdv) latestConsumedId;
                 LOG.info(
-                        "{} snapshot state for partition {}:{}:{}/{}",
+                        "[{}] [{}] snapshot state for partition {}:{}:{}/{}",
                         split.getPartition().getFullTopicName(),
+                        sourceConfiguration.getSubscriptionName(),
                         msgId.getLedgerId(),
                         msgId.getEntryId(),
                         msgId.getBatchIndex(),

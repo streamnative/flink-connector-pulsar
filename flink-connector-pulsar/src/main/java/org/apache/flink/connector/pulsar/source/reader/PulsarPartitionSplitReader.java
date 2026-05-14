@@ -161,8 +161,9 @@ public class PulsarPartitionSplitReader
 
                 MessageIdAdv msgId = (MessageIdAdv) message.getMessageId();
                 LOG.info(
-                        "{} received a message {}:{}:{}/{}.",
+                        "[{}] [{}] received a message {}:{}:{}/{}.",
                         pulsarConsumer.getTopic(),
+                        pulsarConsumer.getSubscription(),
                         msgId.getLedgerId(),
                         msgId.getEntryId(),
                         msgId.getBatchIndex(),
