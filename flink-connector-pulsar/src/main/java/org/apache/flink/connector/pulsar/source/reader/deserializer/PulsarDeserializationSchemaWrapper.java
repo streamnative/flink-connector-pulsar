@@ -62,13 +62,15 @@ public class PulsarDeserializationSchemaWrapper<T> implements PulsarDeserializat
         MessageIdAdv messageIdAdv = (MessageIdAdv) msgId;
         byte[] bytes = message.getData();
         T instance = deserializationSchema.deserialize(bytes);
-        log.info(
-                "Deserialize message {}:{}:{}/{} of {}",
-                messageIdAdv.getLedgerId(),
-                messageIdAdv.getEntryId(),
-                messageIdAdv.getBatchIndex(),
-                messageIdAdv.getBatchSize(),
-                String.valueOf(instance));
+        if (messageIdAdv != null) {
+            log.info(
+                    "Deserialize message {}:{}:{}/{} of {}",
+                    messageIdAdv.getLedgerId(),
+                    messageIdAdv.getEntryId(),
+                    messageIdAdv.getBatchIndex(),
+                    messageIdAdv.getBatchSize(),
+                    String.valueOf(instance));
+        }
         out.collect(instance);
     }
 
