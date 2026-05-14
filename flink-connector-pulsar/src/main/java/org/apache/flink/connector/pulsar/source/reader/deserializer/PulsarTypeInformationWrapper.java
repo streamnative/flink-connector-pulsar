@@ -25,9 +25,9 @@ import org.apache.flink.core.memory.DataInputDeserializer;
 import org.apache.flink.util.Collector;
 
 import org.apache.pulsar.client.api.Message;
+import org.apache.pulsar.client.api.MessageIdAdv;
 
 import javax.annotation.Nullable;
-import org.apache.pulsar.client.api.MessageIdAdv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
