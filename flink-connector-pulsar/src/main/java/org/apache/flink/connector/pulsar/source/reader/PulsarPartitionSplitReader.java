@@ -170,8 +170,8 @@ public class PulsarPartitionSplitReader
                         msgId.getBatchSize());
                 if (registeredSplit.getLatestConsumedId() != null
                         && compareMessageIds(
-                                (MessageIdAdv) registeredSplit.getLatestConsumedId(), msgId)
-                        >= 0) {
+                                    (MessageIdAdv) registeredSplit.getLatestConsumedId(), msgId)
+                            >= 0) {
                     continue;
                 }
 
