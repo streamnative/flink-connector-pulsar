@@ -27,6 +27,9 @@ import org.apache.flink.util.Collector;
 import org.apache.pulsar.client.api.Message;
 
 import javax.annotation.Nullable;
+import org.apache.pulsar.client.api.MessageIdAdv;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Wrap the flink TypeInformation into a {@code PulsarDeserializationSchema}. We would create a
@@ -36,6 +39,8 @@ import javax.annotation.Nullable;
 @Internal
 public class PulsarTypeInformationWrapper<T> implements PulsarDeserializationSchema<T> {
     private static final long serialVersionUID = 6647084180084963022L;
+    private static final Logger log =
+            LoggerFactory.getLogger(PulsarTypeInformationWrapper.class);
 
     /**
      * PulsarDeserializationSchema would be shared for multiple SplitReaders in different fetcher
@@ -60,7 +65,20 @@ public class PulsarTypeInformationWrapper<T> implements PulsarDeserializationSch
         DataInputDeserializer dis = DESERIALIZER.get();
         dis.setBuffer(message.getData());
         T instance = serializer.deserialize(dis);
-
+        MessageIdAdv messageIdAdv = (MessageIdAdv) message.getMessageId();
+        if (messageIdAdv != null) {
+            log.info(
+                    "Deserialize message {}:{}:{}/{} of {}",
+                    messageIdAdv.getLedgerId(),
+                    messageIdAdv.getEntryId(),
+                    messageIdAdv.getBatchIndex(),
+                    messageIdAdv.getBatchSize(),
+                    String.valueOf(instance));
+        } else {
+            log.info(
+                    "Deserialize message {id-null} of {}",
+                    String.valueOf(instance));
+        }
         out.collect(instance);
     }
 

@@ -23,9 +23,12 @@ import org.apache.flink.connector.pulsar.common.schema.PulsarSchema;
 import org.apache.flink.util.Collector;
 
 import org.apache.pulsar.client.api.Message;
+import org.apache.pulsar.client.api.MessageIdAdv;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.common.schema.KeyValue;
 import org.apache.pulsar.common.schema.SchemaInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.apache.flink.connector.pulsar.common.schema.PulsarSchemaUtils.createTypeInformation;
 
@@ -38,6 +41,8 @@ import static org.apache.flink.connector.pulsar.common.schema.PulsarSchemaUtils.
 @Internal
 public class PulsarSchemaWrapper<T> implements PulsarDeserializationSchema<T> {
     private static final long serialVersionUID = -4864701207257059158L;
+    private static final Logger log =
+            LoggerFactory.getLogger(PulsarSchemaWrapper.class);
 
     /** The serializable pulsar schema, it wrap the schema with type class. */
     private final PulsarSchema<T> pulsarSchema;
@@ -64,7 +69,20 @@ public class PulsarSchemaWrapper<T> implements PulsarDeserializationSchema<T> {
         Schema<T> schema = this.pulsarSchema.getPulsarSchema();
         byte[] bytes = message.getData();
         T instance = schema.decode(bytes);
-
+        MessageIdAdv messageIdAdv = (MessageIdAdv) message.getMessageId();
+        if (messageIdAdv != null) {
+            log.info(
+                    "Deserialize message {}:{}:{}/{} of {}",
+                    messageIdAdv.getLedgerId(),
+                    messageIdAdv.getEntryId(),
+                    messageIdAdv.getBatchIndex(),
+                    messageIdAdv.getBatchSize(),
+                    String.valueOf(instance));
+        } else {
+            log.info(
+                    "Deserialize message {id-null} of {}",
+                    String.valueOf(instance));
+        }
         out.collect(instance);
     }
 
