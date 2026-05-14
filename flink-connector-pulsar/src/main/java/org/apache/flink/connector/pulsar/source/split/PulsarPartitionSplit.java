@@ -66,6 +66,10 @@ public class PulsarPartitionSplit implements SourceSplit, Serializable {
             @Nullable TxnID uncommittedTransactionId) {
         this.partition = checkNotNull(partition);
         this.stopCursor = checkNotNull(stopCursor);
+        // TODO 当这个ID被设置为 latest，那么在初始化 cursor 之后，就应该把它改成 "已经消费的最后一个position"，
+        //  而不应该一直是 Long.MAX， 否则会出问题：
+        //  例子-1: ack 会过度提交消息
+        //  例子-2: 消息去重机制会导致消费卡住。
         this.latestConsumedId = latestConsumedId;
         this.uncommittedTransactionId = uncommittedTransactionId;
     }

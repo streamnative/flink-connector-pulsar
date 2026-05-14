@@ -75,7 +75,7 @@ class PulsarPartitionSplitReaderTest extends PulsarTestSuiteBase {
         String topicName = randomAlphabetic(10);
 
         // Add a split
-        handleSplit(splitReader, topicName, 0, MessageId.latest);
+        handleSplit(splitReader, topicName, 0, MessageId.earliest);
 
         // Poll once with a null message
         Message<byte[]> message1 = fetchedMessage(splitReader);
@@ -100,7 +100,7 @@ class PulsarPartitionSplitReaderTest extends PulsarTestSuiteBase {
         PulsarPartitionSplitReader splitReader = splitReader();
         String topicName = randomAlphabetic(10);
 
-        handleSplit(splitReader, topicName, 0, MessageId.latest);
+        handleSplit(splitReader, topicName, 0, MessageId.earliest);
         operator().sendMessage(topicNameWithPartition(topicName, 0), STRING, randomAlphabetic(10));
         fetchedMessages(splitReader, 1, true);
     }
