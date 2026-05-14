@@ -40,7 +40,8 @@ import org.slf4j.LoggerFactory;
 @Internal
 public class PulsarDeserializationSchemaWrapper<T> implements PulsarDeserializationSchema<T> {
     private static final long serialVersionUID = -630646912412751300L;
-    private static final Logger log = LoggerFactory.getLogger(PulsarDeserializationSchemaWrapper.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(PulsarDeserializationSchemaWrapper.class);
 
     private final DeserializationSchema<T> deserializationSchema;
 
