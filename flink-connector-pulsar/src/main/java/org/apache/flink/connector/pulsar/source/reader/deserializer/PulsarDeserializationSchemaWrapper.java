@@ -59,9 +59,9 @@ public class PulsarDeserializationSchemaWrapper<T> implements PulsarDeserializat
     @Override
     public void deserialize(Message<byte[]> message, Collector<T> out) throws Exception {
         MessageId msgId = message.getMessageId();
+        MessageIdAdv messageIdAdv = (MessageIdAdv) msgId;
         byte[] bytes = message.getData();
         T instance = deserializationSchema.deserialize(bytes);
-        MessageIdAdv messageIdAdv = (MessageIdAdv) msgId;
         if (messageIdAdv != null) {
             log.info(
                     "Deserialize message {}:{}:{}/{} of {}",
@@ -71,9 +71,7 @@ public class PulsarDeserializationSchemaWrapper<T> implements PulsarDeserializat
                     messageIdAdv.getBatchSize(),
                     String.valueOf(instance));
         } else {
-            log.info(
-                    "Deserialize message {id-null} of {}",
-                    String.valueOf(instance));
+            log.info("Deserialize message {id-null} of {}", String.valueOf(instance));
         }
         out.collect(instance);
     }

@@ -41,8 +41,7 @@ import static org.apache.flink.connector.pulsar.common.schema.PulsarSchemaUtils.
 @Internal
 public class PulsarSchemaWrapper<T> implements PulsarDeserializationSchema<T> {
     private static final long serialVersionUID = -4864701207257059158L;
-    private static final Logger log =
-            LoggerFactory.getLogger(PulsarSchemaWrapper.class);
+    private static final Logger log = LoggerFactory.getLogger(PulsarSchemaWrapper.class);
 
     /** The serializable pulsar schema, it wrap the schema with type class. */
     private final PulsarSchema<T> pulsarSchema;
@@ -79,9 +78,7 @@ public class PulsarSchemaWrapper<T> implements PulsarDeserializationSchema<T> {
                     messageIdAdv.getBatchSize(),
                     String.valueOf(instance));
         } else {
-            log.info(
-                    "Deserialize message {id-null} of {}",
-                    String.valueOf(instance));
+            log.info("Deserialize message {id-null} of {}", String.valueOf(instance));
         }
         out.collect(instance);
     }

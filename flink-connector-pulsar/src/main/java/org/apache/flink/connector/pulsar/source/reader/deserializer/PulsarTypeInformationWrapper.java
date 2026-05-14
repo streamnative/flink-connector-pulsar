@@ -39,8 +39,7 @@ import javax.annotation.Nullable;
 @Internal
 public class PulsarTypeInformationWrapper<T> implements PulsarDeserializationSchema<T> {
     private static final long serialVersionUID = 6647084180084963022L;
-    private static final Logger log =
-            LoggerFactory.getLogger(PulsarTypeInformationWrapper.class);
+    private static final Logger log = LoggerFactory.getLogger(PulsarTypeInformationWrapper.class);
 
     /**
      * PulsarDeserializationSchema would be shared for multiple SplitReaders in different fetcher
@@ -75,9 +74,7 @@ public class PulsarTypeInformationWrapper<T> implements PulsarDeserializationSch
                     messageIdAdv.getBatchSize(),
                     String.valueOf(instance));
         } else {
-            log.info(
-                    "Deserialize message {id-null} of {}",
-                    String.valueOf(instance));
+            log.info("Deserialize message {id-null} of {}", String.valueOf(instance));
         }
         out.collect(instance);
     }

@@ -18,7 +18,7 @@
 
 package org.apache.flink.tests.util.pulsar;
 
-import org.apache.flink.connector.pulsar.common.utils.SimpleCollectIteratorAssert;
+import org.apache.flink.connector.pulsar.testutils.SimpleCollectIteratorAssert;
 import org.apache.flink.connector.pulsar.testutils.source.cases.MultipleTopicsConsumingContext;
 import org.apache.flink.connector.pulsar.testutils.source.cases.PartialKeysConsumingContext;
 import org.apache.flink.connector.testframe.container.FlinkContainerTestEnvironment;
