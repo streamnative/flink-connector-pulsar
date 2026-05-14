@@ -18,6 +18,8 @@
 
 package org.apache.flink.tests.util.pulsar;
 
+import java.util.List;
+import org.apache.flink.connector.pulsar.common.utils.SimpleCollectIteratorAssert;
 import org.apache.flink.connector.pulsar.testutils.source.cases.MultipleTopicsConsumingContext;
 import org.apache.flink.connector.pulsar.testutils.source.cases.PartialKeysConsumingContext;
 import org.apache.flink.connector.testframe.container.FlinkContainerTestEnvironment;
@@ -30,7 +32,10 @@ import org.apache.flink.connector.testframe.testsuites.SourceTestSuiteBase;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.tests.util.pulsar.common.FlinkContainerUtils;
 import org.apache.flink.tests.util.pulsar.common.PulsarContainerTestEnvironment;
+import org.apache.flink.util.CloseableIterator;
 
+import static java.util.concurrent.CompletableFuture.runAsync;
+import static org.apache.flink.core.testutils.FlinkAssertions.assertThatFuture;
 import static org.apache.flink.streaming.api.CheckpointingMode.EXACTLY_ONCE;
 
 /** Pulsar source E2E test based on the connector testing framework. */
@@ -66,4 +71,24 @@ public class PulsarSourceE2ECase extends SourceTestSuiteBase<String> {
                 context.addConnectorJarPaths(FlinkContainerUtils.connectorJarPaths());
                 return context;
             };
+
+    @Override
+    protected void checkResultWithSemantic(
+            CloseableIterator<String> resultIterator,
+            List<List<String>> testData,
+            org.apache.flink.core.execution.CheckpointingMode semantic,
+            Integer limit) {
+        if (limit != null) {
+            Runnable runnable =
+                    () ->
+                            new SimpleCollectIteratorAssert<>(resultIterator)
+                                    .withNumRecordsLimit(limit)
+                                    .matchesRecordsFromSource(testData, semantic);
+
+            assertThatFuture(runAsync(runnable)).eventuallySucceeds();
+        } else {
+            new SimpleCollectIteratorAssert<>(resultIterator)
+                    .matchesRecordsFromSource(testData, semantic);
+        }
+    }
 }
