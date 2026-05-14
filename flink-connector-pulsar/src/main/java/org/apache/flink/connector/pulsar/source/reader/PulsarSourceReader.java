@@ -41,6 +41,7 @@ import org.apache.flink.util.FlinkRuntimeException;
 
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.MessageId;
+import org.apache.pulsar.client.api.MessageIdAdv;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.Schema;
 import org.slf4j.Logger;
@@ -178,7 +179,12 @@ public class PulsarSourceReader<OUT>
         for (PulsarPartitionSplit split : splits) {
             MessageId latestConsumedId = split.getLatestConsumedId();
             if (latestConsumedId != null) {
+                MessageIdAdv msgId = (MessageIdAdv) latestConsumedId;
+                LOG.info("{} snapshot state for partition {}:{}:{}/{}", split.getPartition().getFullTopicName(),
+                        msgId.getLedgerId(), msgId.getEntryId(), msgId.getBatchIndex(), msgId.getBatchSize());
                 cursors.put(split.getPartition(), latestConsumedId);
+            } else {
+                LOG.info("{} snapshot state for partition null", split.getPartition().getFullTopicName());
             }
         }
         // Put cursors of all the finished splits.

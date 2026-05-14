@@ -46,6 +46,7 @@ import org.apache.pulsar.client.api.KeySharedPolicy;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.MessageCrypto;
 import org.apache.pulsar.client.api.MessageId;
+import org.apache.pulsar.client.api.MessageIdAdv;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
@@ -157,6 +158,10 @@ public class PulsarPartitionSplitReader
                 if (message == null) {
                     break;
                 }
+
+                MessageIdAdv msgId = (MessageIdAdv) message.getMessageId();
+                LOG.info("{} received a message {}:{}:{}/{}.", pulsarConsumer.getTopic(), msgId.getLedgerId(),
+                        msgId.getEntryId(), msgId.getBatchIndex(), msgId.getBatchSize());
 
                 StopCondition condition = stopCursor.shouldStop(message);
 
