@@ -51,6 +51,7 @@ import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.impl.BatchMessageIdImpl;
+import org.apache.pulsar.client.impl.MessageIdImpl;
 import org.apache.pulsar.common.api.proto.MessageMetadata;
 import org.apache.pulsar.shade.com.google.common.base.Strings;
 import org.slf4j.Logger;
@@ -133,8 +134,7 @@ public class PulsarPartitionSplitReader
         // Consume messages from pulsar until it was woken up by flink reader.
         CompletableFuture<Message<byte[]>> msgFuture = null;
         for (int messageNum = 0;
-                messageNum < sourceConfiguration.getMaxFetchRecords() && deadline.hasTimeLeft();
-                messageNum++) {
+                messageNum < sourceConfiguration.getMaxFetchRecords() && deadline.hasTimeLeft(); ) {
             try {
                 int fetchTime = sourceConfiguration.getFetchOneMessageTime();
                 if (fetchTime <= 0) {
@@ -156,6 +156,7 @@ public class PulsarPartitionSplitReader
                     }
                 }
                 if (message == null) {
+                    // TODO 这里的 break 会产生什么影响？
                     break;
                 }
 
@@ -168,16 +169,22 @@ public class PulsarPartitionSplitReader
                         msgId.getEntryId(),
                         msgId.getBatchIndex(),
                         msgId.getBatchSize());
+                if (registeredSplit.getLatestConsumedId() != null
+                        && compareMessageIds((MessageIdAdv) registeredSplit.getLatestConsumedId(), msgId) >=0 ) {
+                    continue;
+                }
 
                 StopCondition condition = stopCursor.shouldStop(message);
 
                 if (condition == StopCondition.CONTINUE || condition == StopCondition.EXACTLY) {
                     // Collect original message.
                     builder.add(splitId, message);
+                    messageNum++;
                     LOG.debug("Finished polling message {}", message);
                 }
 
                 if (condition == StopCondition.EXACTLY || condition == StopCondition.TERMINATE) {
+                    // TODO 如果 condition 是 TERMINATE， 这里 break 了，会丢掉一个已经 pop 出来的消息。
                     builder.addFinishedSplit(splitId);
                     break;
                 }
@@ -189,6 +196,28 @@ public class PulsarPartitionSplitReader
         }
 
         return builder.build();
+    }
+
+    private int compareMessageIds(MessageIdAdv messageId1, MessageIdAdv messageId2) {
+        if (messageId1.getLedgerId() > messageId2.getLedgerId()) {
+            return 1;
+        }
+        if (messageId1.getLedgerId() < messageId2.getLedgerId()) {
+            return -1;
+        }
+        if (messageId1.getEntryId() > messageId2.getEntryId()) {
+            return 1;
+        }
+        if (messageId1.getEntryId() < messageId2.getEntryId()) {
+            return -1;
+        }
+        if (messageId2 instanceof BatchMessageIdImpl && messageId1 instanceof BatchMessageIdImpl) {
+            BatchMessageIdImpl batchMessageId1 = (BatchMessageIdImpl) messageId1;
+            BatchMessageIdImpl batchMessageId2 = (BatchMessageIdImpl) messageId2;
+            return batchMessageId1.getBatchIndex() - batchMessageId2.getBatchIndex();
+        } else {
+            return 0;
+        }
     }
 
     @Override

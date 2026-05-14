@@ -49,8 +49,6 @@ import static org.apache.flink.streaming.api.CheckpointingMode.EXACTLY_ONCE;
  */
 class PulsarSourceITCase extends SourceTestSuiteBase<String> {
 
-    private static final long RESULT_ASSERTION_TIMEOUT_SECONDS = 120;
-
     // Defines test environment on Flink MiniCluster
     @TestEnv MiniClusterTestEnvironment flink = new MiniClusterTestEnvironment();
 
