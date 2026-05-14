@@ -32,10 +32,10 @@ import org.apache.pulsar.client.impl.BatchMessageIdImpl;
 import org.apache.pulsar.client.impl.ChunkMessageIdImpl;
 import org.apache.pulsar.client.impl.MessageIdImpl;
 import org.apache.pulsar.client.impl.schema.AutoConsumeSchema;
-
-import java.io.Serializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
