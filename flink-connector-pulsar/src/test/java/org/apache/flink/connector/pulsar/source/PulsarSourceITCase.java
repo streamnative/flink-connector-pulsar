@@ -32,6 +32,7 @@ import org.apache.flink.connector.testframe.junit.annotations.TestEnv;
 import org.apache.flink.connector.testframe.junit.annotations.TestExternalSystem;
 import org.apache.flink.connector.testframe.junit.annotations.TestSemantics;
 import org.apache.flink.connector.testframe.testsuites.SourceTestSuiteBase;
+import org.apache.flink.connector.testframe.utils.CollectIteratorAssertions;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.util.CloseableIterator;
 
@@ -77,70 +78,12 @@ class PulsarSourceITCase extends SourceTestSuiteBase<String> {
     PulsarTestContextFactory<String, EncryptedMessagesConsumingContext> encryptMessages =
             new PulsarTestContextFactory<>(pulsar, EncryptedMessagesConsumingContext::new);
 
-    //    @DisplayName("Test source metrics")
-    //    public void testSourceMetrics(
-    //            TestEnvironment testEnv,
-    //            DataStreamSourceExternalContext<String> externalContext,
-    //            org.apache.flink.core.execution.CheckpointingMode semantic)
-    //            throws Exception {
-    //        return;
-    //    }
-    //
-    //    @DisplayName("Test source with multiple splits")
-    //    public void testMultipleSplits(
-    //            TestEnvironment testEnv,
-    //            DataStreamSourceExternalContext<String> externalContext,
-    //            org.apache.flink.core.execution.CheckpointingMode semantic)
-    //            throws Exception {
-    //        return;
-    //    }
-    //
-    //    @DisplayName("Test source restarting from a savepoint")
-    //    public void testSavepoint(
-    //            TestEnvironment testEnv,
-    //            DataStreamSourceExternalContext<String> externalContext,
-    //            org.apache.flink.core.execution.CheckpointingMode semantic)
-    //            throws Exception {
-    //        return;
-    //    }
-    //
-    //    @DisplayName("Test source with at least one idle parallelism")
-    //    public void testIdleReader(
-    //            TestEnvironment testEnv,
-    //            DataStreamSourceExternalContext<String> externalContext,
-    //            org.apache.flink.core.execution.CheckpointingMode semantic)
-    //            throws Exception {
-    //        return;
-    //    }
-    //
-    //    @DisplayName("Test TaskManager failure")
-    //    public void testTaskManagerFailure(
-    //            TestEnvironment testEnv,
-    //            DataStreamSourceExternalContext<String> externalContext,
-    //            ClusterControllable controller,
-    //            org.apache.flink.core.execution.CheckpointingMode semantic)
-    //            throws Exception {
-    //        return;
-    //    }
-    //
-    //    @DisplayName("Test source restarting with a higher parallelism")
-    //    public void testScaleUp(
-    //            TestEnvironment testEnv,
-    //            DataStreamSourceExternalContext<String> externalContext,
-    //            org.apache.flink.core.execution.CheckpointingMode semantic)
-    //            throws Exception {
-    //        return;
-    //    }
-    //
-    //    @DisplayName("Test source with single split")
-    //    public void testSourceSingleSplit(
-    //            TestEnvironment testEnv,
-    //            DataStreamSourceExternalContext<String> externalContext,
-    //            org.apache.flink.core.execution.CheckpointingMode semantic)
-    //            throws Exception {
-    //        return;
-    //    }
-
+    /**
+     * {@link CollectIteratorAssertions} will generate a mismatch description if the result does not
+     * match the expected value. It attempts to capture all following messages, even though already
+     * failed, which helps engineers for troubleshooting, but draining the following messages may
+     * lead the test to get stuck. We rewrite the method to avoid the test to get stuck.
+     */
     @Override
     protected void checkResultWithSemantic(
             CloseableIterator<String> resultIterator,

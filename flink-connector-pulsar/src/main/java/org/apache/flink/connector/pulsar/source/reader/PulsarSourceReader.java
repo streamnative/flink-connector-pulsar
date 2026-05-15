@@ -190,7 +190,7 @@ public class PulsarSourceReader<OUT>
                         msgId.getBatchSize());
                 cursors.put(split.getPartition(), latestConsumedId);
             } else {
-                LOG.info(
+                LOG.warn(
                         "{} snapshot state for partition null",
                         split.getPartition().getFullTopicName());
             }

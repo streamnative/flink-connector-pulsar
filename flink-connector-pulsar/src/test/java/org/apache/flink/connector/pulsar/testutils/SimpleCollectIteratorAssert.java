@@ -30,10 +30,14 @@ import java.util.List;
 import static org.apache.flink.streaming.api.CheckpointingMode.convertToCheckpointingMode;
 
 /**
- * A collect iterator assertion that can validate only a bounded prefix of an unbounded result
- * iterator.
+ * Difference with {@link org.apache.flink.connector.testframe.utils.CollectIteratorAssertions}
+ * CollectIteratorAssertions will generate a mismatch description if the result does not match the
+ * expected value. It attempts to capture all following messages, even though already failed, which
+ * helps engineers for troubleshooting, but draining the following messages may lead the test to get
+ * stuck.
  *
- * @param <T> The type of records in the test data and collect iterator.
+ * <p>The current implementation will immediately fail once a message does not match, skips to drain
+ * the following messages to build the information that describes failure.
  */
 public class SimpleCollectIteratorAssert<T>
         extends AbstractAssert<SimpleCollectIteratorAssert<T>, Iterator<T>> {

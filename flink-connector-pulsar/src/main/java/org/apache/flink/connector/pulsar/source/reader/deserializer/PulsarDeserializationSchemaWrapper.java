@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 @Internal
 public class PulsarDeserializationSchemaWrapper<T> implements PulsarDeserializationSchema<T> {
     private static final long serialVersionUID = -630646912412751300L;
-    private static final Logger log =
+    private static final Logger LOG =
             LoggerFactory.getLogger(PulsarDeserializationSchemaWrapper.class);
 
     private final DeserializationSchema<T> deserializationSchema;
@@ -62,16 +62,18 @@ public class PulsarDeserializationSchemaWrapper<T> implements PulsarDeserializat
         MessageIdAdv messageIdAdv = (MessageIdAdv) msgId;
         byte[] bytes = message.getData();
         T instance = deserializationSchema.deserialize(bytes);
-        if (messageIdAdv != null) {
-            log.info(
-                    "Deserialize message {}:{}:{}/{} of {}",
-                    messageIdAdv.getLedgerId(),
-                    messageIdAdv.getEntryId(),
-                    messageIdAdv.getBatchIndex(),
-                    messageIdAdv.getBatchSize(),
-                    String.valueOf(instance));
-        } else {
-            log.info("Deserialize message {id-null} of {}", String.valueOf(instance));
+        if (LOG.isDebugEnabled()) {
+            if (messageIdAdv != null) {
+                LOG.debug(
+                        "Deserialize message {}:{}:{}/{} of {}",
+                        messageIdAdv.getLedgerId(),
+                        messageIdAdv.getEntryId(),
+                        messageIdAdv.getBatchIndex(),
+                        messageIdAdv.getBatchSize(),
+                        String.valueOf(instance));
+            } else {
+                LOG.debug("Deserialize message {id-null} of {}", String.valueOf(instance));
+            }
         }
         out.collect(instance);
     }

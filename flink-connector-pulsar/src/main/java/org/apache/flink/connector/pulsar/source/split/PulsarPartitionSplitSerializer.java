@@ -52,7 +52,7 @@ public class PulsarPartitionSplitSerializer
 
     // This version should be bumped after modifying the PulsarPartitionSplit.
     public static final int CURRENT_VERSION = 2;
-    private static final Logger log = LoggerFactory.getLogger(PulsarPartitionSplitSerializer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PulsarPartitionSplitSerializer.class);
 
     private PulsarPartitionSplitSerializer() {
         // Singleton instance.
@@ -87,13 +87,15 @@ public class PulsarPartitionSplitSerializer
             throws IOException {
 
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-        for (int i = 0; i <= stackTraceElements.length && i < 10; i++) {
-            if (stackTraceElements[i].toString().contains("snapshotState")) {
-                log.info(
-                        "===> Checkpoint: snapshot state for split {} - {}",
-                        split.getPartition().getFullTopicName(),
-                        split.getLatestConsumedId());
-                break;
+        if (LOG.isDebugEnabled()) {
+            for (int i = 0; i <= stackTraceElements.length && i < 10; i++) {
+                if (stackTraceElements[i].toString().contains("snapshotState")) {
+                    LOG.debug(
+                            "Checkpoint: snapshot state for split {} - {}",
+                            split.getPartition().getFullTopicName(),
+                            split.getLatestConsumedId());
+                    break;
+                }
             }
         }
 
@@ -146,14 +148,16 @@ public class PulsarPartitionSplitSerializer
             uncommittedTransactionId = new TxnID(mostSigBits, leastSigBits);
         }
 
-        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-        for (int i = 0; i <= stackTraceElements.length && i < 20; i++) {
-            if (stackTraceElements[i].toString().contains("restoreStateAndGates")) {
-                log.info(
-                        "===> Restore snapshot state for split {} - {}",
-                        partition.getFullTopicName(),
-                        latestConsumedId);
-                break;
+        if (LOG.isDebugEnabled()) {
+            StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+            for (int i = 0; i <= stackTraceElements.length && i < 20; i++) {
+                if (stackTraceElements[i].toString().contains("restoreStateAndGates")) {
+                    LOG.debug(
+                            "Restore snapshot state for split {} - {}",
+                            partition.getFullTopicName(),
+                            latestConsumedId);
+                    break;
+                }
             }
         }
 

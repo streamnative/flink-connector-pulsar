@@ -28,6 +28,7 @@ import org.apache.flink.connector.testframe.junit.annotations.TestEnv;
 import org.apache.flink.connector.testframe.junit.annotations.TestExternalSystem;
 import org.apache.flink.connector.testframe.junit.annotations.TestSemantics;
 import org.apache.flink.connector.testframe.testsuites.SourceTestSuiteBase;
+import org.apache.flink.connector.testframe.utils.CollectIteratorAssertions;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.tests.util.pulsar.common.FlinkContainerUtils;
 import org.apache.flink.tests.util.pulsar.common.PulsarContainerTestEnvironment;
@@ -73,6 +74,12 @@ public class PulsarSourceE2ECase extends SourceTestSuiteBase<String> {
                 return context;
             };
 
+    /**
+     * {@link CollectIteratorAssertions} will generate a mismatch description if the result does not
+     * match the expected value. It attempts to capture all following messages, even though already
+     * failed, which helps engineers for troubleshooting, but draining the following messages may
+     * lead the test to get stuck. We rewrite the method to avoid the test to get stuck.
+     */
     @Override
     protected void checkResultWithSemantic(
             CloseableIterator<String> resultIterator,

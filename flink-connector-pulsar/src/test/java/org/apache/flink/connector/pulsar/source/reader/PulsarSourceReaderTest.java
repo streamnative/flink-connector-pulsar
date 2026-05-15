@@ -49,8 +49,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -81,7 +79,6 @@ import static org.assertj.core.api.Assertions.fail;
 class PulsarSourceReaderTest extends PulsarTestSuiteBase {
 
     private static final int MAX_EMPTY_POLLING_TIMES = 10;
-    private static final Logger LOG = LoggerFactory.getLogger(PulsarSourceReaderTest.class);
 
     @Test
     void assignZeroSplitsCreatesZeroSubscription() throws Exception {
@@ -192,8 +189,6 @@ class PulsarSourceReaderTest extends PulsarTestSuiteBase {
                         TopicNameUtils.topicNameWithPartition(topicName, i));
             }
         } catch (Throwable t) {
-            // TODO this test is flaky, print logs for troubleshooting.
-            LOG.error("Error when testing offsetCommitOnCheckpointComplete.", t);
             throw t;
         } finally {
             if (!readerClosed.get()) {

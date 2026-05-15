@@ -39,7 +39,7 @@ import javax.annotation.Nullable;
 @Internal
 public class PulsarTypeInformationWrapper<T> implements PulsarDeserializationSchema<T> {
     private static final long serialVersionUID = 6647084180084963022L;
-    private static final Logger log = LoggerFactory.getLogger(PulsarTypeInformationWrapper.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PulsarTypeInformationWrapper.class);
 
     /**
      * PulsarDeserializationSchema would be shared for multiple SplitReaders in different fetcher
@@ -65,16 +65,18 @@ public class PulsarTypeInformationWrapper<T> implements PulsarDeserializationSch
         dis.setBuffer(message.getData());
         T instance = serializer.deserialize(dis);
         MessageIdAdv messageIdAdv = (MessageIdAdv) message.getMessageId();
-        if (messageIdAdv != null) {
-            log.info(
-                    "Deserialize message {}:{}:{}/{} of {}",
-                    messageIdAdv.getLedgerId(),
-                    messageIdAdv.getEntryId(),
-                    messageIdAdv.getBatchIndex(),
-                    messageIdAdv.getBatchSize(),
-                    String.valueOf(instance));
-        } else {
-            log.info("Deserialize message {id-null} of {}", String.valueOf(instance));
+        if (LOG.isDebugEnabled()) {
+            if (messageIdAdv != null) {
+                LOG.debug(
+                        "Deserialize message {}:{}:{}/{} of {}",
+                        messageIdAdv.getLedgerId(),
+                        messageIdAdv.getEntryId(),
+                        messageIdAdv.getBatchIndex(),
+                        messageIdAdv.getBatchSize(),
+                        String.valueOf(instance));
+            } else {
+                LOG.debug("Deserialize message {id-null} of {}", String.valueOf(instance));
+            }
         }
         out.collect(instance);
     }

@@ -140,7 +140,10 @@ public class PulsarPartitionSplitReader
                 if (fetchTime <= 0) {
                     fetchTime = (int) deadline.timeLeftIfAny().toMillis();
                 }
-                // TODO add explanation.
+                // (Highlight) The synchronised API "receive(Duration)" has a bug, which may throw
+                // an error: "Try to
+                // reserve/release memory failed, the param memorySize is a negative value".
+                // Here we use an asynchronous API.
                 msgFuture = pulsarConsumer.receiveAsync();
                 Message<byte[]> message = null;
                 try {
@@ -156,19 +159,25 @@ public class PulsarPartitionSplitReader
                     }
                 }
                 if (message == null) {
-                    // TODO 这里的 break 会产生什么影响？
                     break;
                 }
 
                 MessageIdAdv msgId = (MessageIdAdv) message.getMessageId();
-                LOG.info(
-                        "[{}] [{}] received a message {}:{}:{}/{}.",
-                        pulsarConsumer.getTopic(),
-                        pulsarConsumer.getSubscription(),
-                        msgId.getLedgerId(),
-                        msgId.getEntryId(),
-                        msgId.getBatchIndex(),
-                        msgId.getBatchSize());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(
+                            "[{}] [{}] received a message {}:{}:{}/{}.",
+                            pulsarConsumer.getTopic(),
+                            pulsarConsumer.getSubscription(),
+                            msgId.getLedgerId(),
+                            msgId.getEntryId(),
+                            msgId.getBatchIndex(),
+                            msgId.getBatchSize());
+                }
+                // (Highlight) Since the connector will not acknowledge messages immediately, when
+                // the pulsar consumer
+                // reconnects, it may receive repeated messages. We use the following two mechanism
+                // to solve the
+                // repeated receiving messages issue.
                 if (latestMessageIdInTheCurrentFetch != null
                         && compareMessageIds(latestMessageIdInTheCurrentFetch, msgId) >= 0) {
                     continue;
@@ -191,7 +200,6 @@ public class PulsarPartitionSplitReader
                 }
 
                 if (condition == StopCondition.EXACTLY || condition == StopCondition.TERMINATE) {
-                    // TODO 如果 condition 是 TERMINATE， 这里 break 了，会丢掉一个已经 pop 出来的消息。
                     builder.addFinishedSplit(splitId);
                     break;
                 }

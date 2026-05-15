@@ -35,8 +35,6 @@ import org.apache.pulsar.client.api.MessageId;
 import org.apache.pulsar.client.impl.BatchMessageIdImpl;
 import org.apache.pulsar.client.impl.MessageIdImpl;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -66,8 +64,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Unit test for {@link org.apache.flink.connector.pulsar.source.reader.PulsarPartitionSplitReader}.
  */
 class PulsarPartitionSplitReaderTest extends PulsarTestSuiteBase {
-
-    private static final Logger LOG = LoggerFactory.getLogger(PulsarSourceReaderTest.class);
 
     @Test
     void pollMessageAfterTimeout() throws Exception {
@@ -267,11 +263,6 @@ class PulsarPartitionSplitReaderTest extends PulsarTestSuiteBase {
             handleSplit(splitReader, topicName, 0, startMessageId);
             fetchedMessages(splitReader, 1, true);
         } catch (Throwable t) {
-            // TODO this test is flaky, print logs for troubleshooting.
-            LOG.error(
-                    "Error when testing"
-                            + " consumeMessageCreatedBeforeHandleSplitsChangesAndUseSecondLastMessageWithoutSeek.",
-                    t);
             throw t;
         } finally {
             splitReader.close();
