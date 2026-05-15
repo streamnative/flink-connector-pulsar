@@ -200,7 +200,8 @@ public class PulsarSchemaTypeSerializer<T> extends TypeSerializer<T> {
             return new PulsarSchemaTypeSerializer<>(schema);
         }
 
-        // https://issues.apache.org/jira/browse/FLINK-30614 changed the definition, BTW the param is useless for the current project.
+        // https://issues.apache.org/jira/browse/FLINK-30614 changed the definition, BTW the param
+        // is useless for the current project.
         @Override
         public TypeSerializerSchemaCompatibility<T> resolveSchemaCompatibility(
                 TypeSerializerSnapshot<T> typeSerializerSnapshot) {
