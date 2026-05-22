@@ -86,19 +86,6 @@ public class PulsarPartitionSplitSerializer
     public void serializePulsarPartitionSplit(DataOutputStream out, PulsarPartitionSplit split)
             throws IOException {
 
-        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-        if (LOG.isDebugEnabled()) {
-            for (int i = 0; i <= stackTraceElements.length && i < 10; i++) {
-                if (stackTraceElements[i].toString().contains("snapshotState")) {
-                    LOG.debug(
-                            "Checkpoint: snapshot state for split {} - {}",
-                            split.getPartition().getFullTopicName(),
-                            split.getLatestConsumedId());
-                    break;
-                }
-            }
-        }
-
         // partition
         serializeTopicPartition(out, split.getPartition());
 
@@ -146,19 +133,6 @@ public class PulsarPartitionSplitSerializer
             long mostSigBits = in.readLong();
             long leastSigBits = in.readLong();
             uncommittedTransactionId = new TxnID(mostSigBits, leastSigBits);
-        }
-
-        if (LOG.isDebugEnabled()) {
-            StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-            for (int i = 0; i <= stackTraceElements.length && i < 20; i++) {
-                if (stackTraceElements[i].toString().contains("restoreStateAndGates")) {
-                    LOG.debug(
-                            "Restore snapshot state for split {} - {}",
-                            partition.getFullTopicName(),
-                            latestConsumedId);
-                    break;
-                }
-            }
         }
 
         // Creation
