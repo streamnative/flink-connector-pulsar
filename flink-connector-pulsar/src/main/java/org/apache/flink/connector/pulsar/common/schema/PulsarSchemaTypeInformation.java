@@ -19,7 +19,7 @@
 package org.apache.flink.connector.pulsar.common.schema;
 
 import org.apache.flink.annotation.Internal;
-import org.apache.flink.api.common.ExecutionConfig;
+import org.apache.flink.api.common.serialization.SerializerConfig;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 
@@ -66,8 +66,10 @@ public class PulsarSchemaTypeInformation<T> extends TypeInformation<T> {
         return false;
     }
 
+    // https://issues.apache.org/jira/browse/FLINK-34125 modified the definition, BTW the param is
+    // useless for the current project.
     @Override
-    public TypeSerializer<T> createSerializer(ExecutionConfig config) {
+    public TypeSerializer<T> createSerializer(SerializerConfig serializerConfig) {
         return new PulsarSchemaTypeSerializer<>(schema);
     }
 

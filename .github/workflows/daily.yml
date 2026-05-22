@@ -44,6 +44,9 @@ jobs:
         }, {
           flink: 1.17.2,
           branch: v4.0
+        }, {
+          flink: 2.2.0,
+          branch: main
         }]
         include:
           - jdk: 17
@@ -58,4 +61,4 @@ jobs:
       connector_branch: ${{ matrix.flink_branches.branch }}
       run_dependency_convergence: false
       timeout_global: 120
-      timeout_test: 80
+      timeout_test: 65

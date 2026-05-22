@@ -25,6 +25,8 @@ import org.apache.flink.core.io.SimpleVersionedSerializer;
 
 import org.apache.pulsar.client.api.MessageId;
 import org.apache.pulsar.client.api.transaction.TxnID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -50,6 +52,7 @@ public class PulsarPartitionSplitSerializer
 
     // This version should be bumped after modifying the PulsarPartitionSplit.
     public static final int CURRENT_VERSION = 2;
+    private static final Logger LOG = LoggerFactory.getLogger(PulsarPartitionSplitSerializer.class);
 
     private PulsarPartitionSplitSerializer() {
         // Singleton instance.
@@ -82,6 +85,7 @@ public class PulsarPartitionSplitSerializer
 
     public void serializePulsarPartitionSplit(DataOutputStream out, PulsarPartitionSplit split)
             throws IOException {
+
         // partition
         serializeTopicPartition(out, split.getPartition());
 

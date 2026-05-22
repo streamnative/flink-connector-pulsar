@@ -48,17 +48,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        flink: [ 1.17.2, 1.18.1 ]
-        jdk: [ 8, 11, 17 ]
-        exclude:
-          - jdk: 17
-            flink: 1.17.2
+        flink: [ 2.2.0 ]
+        jdk: [ 11, 17 ]
     uses: apache/flink-connector-shared-utils/.github/workflows/ci.yml@ci_utils
     with:
       flink_version: ${{ matrix.flink }}
       jdk_version: ${{ matrix.jdk }}
       timeout_global: 120
-      timeout_test: 80
+      timeout_test: 65
   check_dead_links:
     runs-on: ubuntu-latest
     timeout-minutes: 30
