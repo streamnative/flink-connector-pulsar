@@ -32,8 +32,9 @@ public class PulsarCommittable {
     private final TxnID txnID;
 
     /**
-     * To ensure compatibility after degradation, the new version can still restore the PulsarCommittable
-     * object already stored in the old version and keep this constructor.
+     * To ensure compatibility after degradation, the new version can still restore the
+     * PulsarCommittable object already stored in the old version and keep this constructor.
+     *
      * @deprecated the param @param topic is meaningless now.
      */
     @Deprecated
@@ -49,9 +50,7 @@ public class PulsarCommittable {
         return txnID;
     }
 
-    /**
-     * @deprecated the param @param topic is meaningless now.
-     */
+    /** @deprecated the param @param topic is meaningless now. */
     @Deprecated
     public String getTopic() {
         return PulsarCommittableSerializer.TOPIC_PLACEHOLDER;

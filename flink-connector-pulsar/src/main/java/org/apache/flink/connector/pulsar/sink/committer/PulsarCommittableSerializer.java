@@ -46,7 +46,8 @@ public class PulsarCommittableSerializer implements SimpleVersionedSerializer<Pu
             TxnID txnID = obj.getTxnID();
             out.writeLong(txnID.getMostSigBits());
             out.writeLong(txnID.getLeastSigBits());
-            // To ensure compatibility after degradation, the old version can still restore the PulsarCommittable
+            // To ensure compatibility after degradation, the old version can still restore the
+            // PulsarCommittable
             // object already stored in the new version and write a meaningless topic name.
             out.writeUTF(TOPIC_PLACEHOLDER);
             out.flush();

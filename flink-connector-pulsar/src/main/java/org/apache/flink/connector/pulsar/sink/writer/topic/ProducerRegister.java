@@ -18,7 +18,6 @@
 
 package org.apache.flink.connector.pulsar.sink.writer.topic;
 
-import java.util.Collections;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.pulsar.common.crypto.PulsarCrypto;
@@ -52,19 +51,20 @@ import org.apache.pulsar.common.protocol.schema.SchemaHash;
 import org.apache.pulsar.common.schema.SchemaType;
 import org.apache.pulsar.shade.com.google.common.base.Strings;
 import org.apache.pulsar.shade.com.google.common.io.Closer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.apache.flink.connector.pulsar.common.config.PulsarClientFactory.createClient;
 import static org.apache.flink.connector.pulsar.common.metrics.MetricNames.NUM_ACKS_RECEIVED;
@@ -279,7 +279,10 @@ public class ProducerRegister implements Closeable {
     private Transaction getOrCreateTransaction(String topic) throws PulsarClientException {
         if (transaction != null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Got cached transaction. transaction: {}, topic: {}", transaction.getTxnID(), topic);
+                LOG.debug(
+                        "Got cached transaction. transaction: {}, topic: {}",
+                        transaction.getTxnID(),
+                        topic);
             }
             return transaction;
         }
@@ -287,7 +290,10 @@ public class ProducerRegister implements Closeable {
         long timeoutMillis = sinkConfiguration.getTransactionTimeoutMillis();
         transaction = createTransaction(pulsarClient, timeoutMillis);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Created new transaction. transaction: {}, topic: {}", transaction.getTxnID(), topic);
+            LOG.debug(
+                    "Created new transaction. transaction: {}, topic: {}",
+                    transaction.getTxnID(),
+                    topic);
         }
         return transaction;
     }
