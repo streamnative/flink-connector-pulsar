@@ -54,7 +54,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.Collections.emptyList;
@@ -139,8 +138,6 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
         this.pendingMessages = new AtomicLong(0);
     }
 
-    AtomicInteger msgCount = new AtomicInteger(0);
-
     @Override
     public void write(IN element, Context context) throws IOException, InterruptedException {
         PulsarMessage<?> message = serializationSchema.serialize(element, sinkContext);
@@ -150,8 +147,6 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
         List<TopicPartition> partitions = metadataListener.availablePartitions();
         TopicPartition partition = topicRouter.route(element, key, partitions, sinkContext);
         String topic = partition.getFullTopicName();
-
-        LOG.info("===> publishing " + msgCount.incrementAndGet());
 
         // Create message builder for sending messages.
         TypedMessageBuilder<?> builder = createMessageBuilder(topic, context, message);
