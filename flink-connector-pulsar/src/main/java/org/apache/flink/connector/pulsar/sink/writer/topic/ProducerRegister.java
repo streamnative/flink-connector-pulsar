@@ -18,6 +18,7 @@
 
 package org.apache.flink.connector.pulsar.sink.writer.topic;
 
+import java.util.Collections;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.pulsar.common.crypto.PulsarCrypto;
@@ -25,6 +26,7 @@ import org.apache.flink.connector.pulsar.common.metrics.ProducerMetricsIntercept
 import org.apache.flink.connector.pulsar.common.schema.PulsarSchemaUtils;
 import org.apache.flink.connector.pulsar.sink.committer.PulsarCommittable;
 import org.apache.flink.connector.pulsar.sink.config.SinkConfiguration;
+import org.apache.flink.connector.pulsar.sink.writer.PulsarWriter;
 import org.apache.flink.metrics.MetricGroup;
 import org.apache.flink.metrics.groups.SinkWriterMetricGroup;
 import org.apache.flink.util.FlinkRuntimeException;
@@ -63,6 +65,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.apache.flink.connector.pulsar.common.config.PulsarClientFactory.createClient;
 import static org.apache.flink.connector.pulsar.common.metrics.MetricNames.NUM_ACKS_RECEIVED;
@@ -94,6 +98,8 @@ import static org.apache.flink.connector.pulsar.sink.config.PulsarSinkConfigUtil
 @Internal
 public class ProducerRegister implements Closeable {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ProducerRegister.class);
+
     private static final String FAIL_TO_CREATE_TOPIC =
             "Fail to create the non-exist topic, make sure you have enable the topic auto creation in Pulsar.";
 
@@ -104,7 +110,7 @@ public class ProducerRegister implements Closeable {
     private final SinkWriterMetricGroup metricGroup;
     private final Map<String, Schema<byte[]>> schemas;
     private final Map<String, Map<SchemaHash, Producer<?>>> producers;
-    private final Map<String, Transaction> transactions;
+    private Transaction transaction;
 
     public ProducerRegister(
             SinkConfiguration sinkConfiguration,
@@ -117,7 +123,6 @@ public class ProducerRegister implements Closeable {
         this.metricGroup = metricGroup;
         this.schemas = new HashMap<>();
         this.producers = new HashMap<>();
-        this.transactions = new HashMap<>();
 
         if (sinkConfiguration.isEnableMetrics()) {
             metricGroup.setCurrentSendTimeGauge(this::currentSendTimeGauge);
@@ -162,17 +167,15 @@ public class ProducerRegister implements Closeable {
      * be removed until Flink triggered a checkpoint.
      */
     public List<PulsarCommittable> prepareCommit() {
-        List<PulsarCommittable> committables = new ArrayList<>(transactions.size());
-        for (Map.Entry<String, Transaction> entry : transactions.entrySet()) {
-            String topic = entry.getKey();
-            Transaction transaction = entry.getValue();
-            TxnID txnID = transaction.getTxnID();
-
-            committables.add(new PulsarCommittable(txnID, topic));
+        if (transaction !=null) {
+            LOG.info("===> prepare Commit transaction {}", String.valueOf(transaction.getTxnID()));
+        } else {
+            LOG.info("===> prepare Commit transaction null");
+            return Collections.emptyList();
         }
-        transactions.clear();
-
-        return committables;
+        TxnID txnID = transaction.getTxnID();
+        transaction = null;
+        return Collections.singletonList(new PulsarCommittable(txnID, ""));
     }
 
     /**
@@ -276,14 +279,14 @@ public class ProducerRegister implements Closeable {
      * Get the cached topic-related transaction. Or create a new transaction after checkpointing.
      */
     private Transaction getOrCreateTransaction(String topic) throws PulsarClientException {
-        if (transactions.containsKey(topic)) {
-            return transactions.get(topic);
+        if (transaction != null) {
+            LOG.info("===> got cached transaction " + topic);
+            return transaction;
         }
 
         long timeoutMillis = sinkConfiguration.getTransactionTimeoutMillis();
-        Transaction transaction = createTransaction(pulsarClient, timeoutMillis);
-        transactions.put(topic, transaction);
-
+        transaction = createTransaction(pulsarClient, timeoutMillis);
+        LOG.info("===> created transaction {} {}", transaction.getTxnID(), topic);
         return transaction;
     }
 
@@ -301,17 +304,14 @@ public class ProducerRegister implements Closeable {
 
     /** Abort the existed transactions. This method would be used when closing PulsarWriter. */
     private void abortTransactions() {
-        if (coordinatorClient == null || transactions.isEmpty()) {
+        if (coordinatorClient == null || transaction == null) {
             return;
         }
 
         try (Closer closer = Closer.create()) {
-            for (Transaction transaction : transactions.values()) {
-                TxnID txnID = transaction.getTxnID();
-                closer.register(() -> coordinatorClient.abort(txnID));
-            }
-
-            transactions.clear();
+            TxnID txnID = transaction.getTxnID();
+            closer.register(() -> coordinatorClient.abort(txnID));
+            transaction = null;
         } catch (IOException e) {
             throw new FlinkRuntimeException(e);
         }

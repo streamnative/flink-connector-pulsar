@@ -18,6 +18,7 @@
 
 package org.apache.flink.connector.pulsar.sink.writer;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.operators.MailboxExecutor;
 import org.apache.flink.api.common.operators.ProcessingTimeService;
@@ -138,6 +139,8 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
         this.pendingMessages = new AtomicLong(0);
     }
 
+    AtomicInteger msgCount = new AtomicInteger(0);
+
     @Override
     public void write(IN element, Context context) throws IOException, InterruptedException {
         PulsarMessage<?> message = serializationSchema.serialize(element, sinkContext);
@@ -147,6 +150,8 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
         List<TopicPartition> partitions = metadataListener.availablePartitions();
         TopicPartition partition = topicRouter.route(element, key, partitions, sinkContext);
         String topic = partition.getFullTopicName();
+
+        LOG.info("===> publishing " + msgCount.incrementAndGet());
 
         // Create message builder for sending messages.
         TypedMessageBuilder<?> builder = createMessageBuilder(topic, context, message);
