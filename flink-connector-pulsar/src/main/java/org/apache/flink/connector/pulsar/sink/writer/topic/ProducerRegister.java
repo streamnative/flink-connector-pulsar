@@ -320,15 +320,15 @@ public class ProducerRegister implements Closeable {
             return;
         }
 
+        TxnID txnID = transaction.getTxnID();
         try (Closer closer = Closer.create()) {
-            TxnID txnID = transaction.getTxnID();
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Abort transaction. transaction: {}", txnID);
             }
             closer.register(() -> coordinatorClient.abort(txnID));
             transaction = null;
         } catch (IOException e) {
-            LOG.error("Failed to abort transaction {}.", transaction.getTxnID(), e);
+            LOG.error("Failed to abort transaction {}.", txnID, e);
             throw new FlinkRuntimeException(e);
         }
     }
