@@ -274,7 +274,8 @@ public class ProducerRegister implements Closeable {
     }
 
     /**
-     * Get the cached topic-related transaction. Or create a new transaction after checkpointing.
+     * Get the cached transaction. Or create a new transaction after checkpointing.
+     * @param topic Just for logging.
      */
     private Transaction getOrCreateTransaction(String topic) throws PulsarClientException {
         if (transaction != null) {
