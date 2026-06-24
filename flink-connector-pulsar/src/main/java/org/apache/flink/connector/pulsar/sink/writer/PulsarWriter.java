@@ -18,6 +18,9 @@
 
 package org.apache.flink.connector.pulsar.sink.writer;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.common.operators.MailboxExecutor;
 import org.apache.flink.api.common.operators.ProcessingTimeService;
@@ -41,9 +44,12 @@ import org.apache.flink.metrics.groups.SinkWriterMetricGroup;
 import org.apache.flink.util.FlinkRuntimeException;
 
 import org.apache.pulsar.client.api.MessageId;
+import org.apache.pulsar.client.api.MessageIdAdv;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.TypedMessageBuilder;
+import org.apache.pulsar.client.api.transaction.TxnID;
+import org.apache.pulsar.client.impl.BatchMessageIdImpl;
 import org.apache.pulsar.client.impl.TypedMessageBuilderImpl;
 import org.apache.pulsar.shade.com.google.common.base.Strings;
 import org.slf4j.Logger;
@@ -79,6 +85,7 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
     private final ProducerRegister producerRegister;
     private final MailboxExecutor mailboxExecutor;
     private final AtomicLong pendingMessages;
+    private final ConcurrentHashMap<String, BatchMessageIdImpl> latestPublishedMessages = new ConcurrentHashMap<>();
 
     /**
      * Constructor creating a Pulsar writer.
@@ -173,6 +180,10 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
                                     () -> throwSendingException(topic, ex),
                                     "Failed to send data to Pulsar");
                         } else {
+                            MessageIdAdv messageIdAdv = (MessageIdAdv) id;
+                            latestPublishedMessages.put(topic, new BatchMessageIdImpl(messageIdAdv.getLedgerId(),
+                                    messageIdAdv.getEntryId(), messageIdAdv.getBatchSize(),
+                                    messageIdAdv.getBatchIndex()));
                             LOG.debug("Sent message to Pulsar {} with message id {}", topic, id);
                         }
                     });
@@ -266,7 +277,14 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
     @Override
     public Collection<PulsarCommittable> prepareCommit() {
         if (deliveryGuarantee == DeliveryGuarantee.EXACTLY_ONCE) {
-            return producerRegister.prepareCommit();
+            TxnID txnID = producerRegister.prepareCommit();
+            if (txnID == null) {
+                return Collections.emptyList();
+            }
+            Map<String, BatchMessageIdImpl> latestPublishedMessages = new HashMap<>();
+            latestPublishedMessages.putAll(this.latestPublishedMessages);
+            this.latestPublishedMessages.clear();
+            return Collections.singletonList(new PulsarCommittable(txnID, latestPublishedMessages));
         } else {
             return emptyList();
         }

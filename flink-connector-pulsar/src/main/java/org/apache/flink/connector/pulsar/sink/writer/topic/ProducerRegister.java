@@ -164,16 +164,16 @@ public class ProducerRegister implements Closeable {
      * Convert the transactions into a committable list for Pulsar Committer. The transactions would
      * be removed until Flink triggered a checkpoint.
      */
-    public List<PulsarCommittable> prepareCommit() {
+    public TxnID prepareCommit() {
         if (transaction != null) {
             LOG.info("Prepare Commit transaction {}", transaction.getTxnID());
         } else {
             LOG.info("Prepare Commit transaction null");
-            return Collections.emptyList();
+            return null;
         }
         TxnID txnID = transaction.getTxnID();
         transaction = null;
-        return Collections.singletonList(new PulsarCommittable(txnID));
+        return txnID;
     }
 
     /**

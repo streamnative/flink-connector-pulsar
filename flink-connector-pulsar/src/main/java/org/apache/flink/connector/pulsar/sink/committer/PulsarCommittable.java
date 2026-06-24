@@ -18,11 +18,14 @@
 
 package org.apache.flink.connector.pulsar.sink.committer;
 
+import java.util.Collections;
+import java.util.Map;
 import org.apache.flink.annotation.PublicEvolving;
 
 import org.apache.pulsar.client.api.transaction.TxnID;
 
 import java.util.Objects;
+import org.apache.pulsar.client.impl.BatchMessageIdImpl;
 
 /** The writer state for Pulsar connector. We would used in Pulsar committer. */
 @PublicEvolving
@@ -30,6 +33,8 @@ public class PulsarCommittable {
 
     /** The transaction id. */
     private final TxnID txnID;
+
+    private final Map<String, BatchMessageIdImpl> latestPublishedMessages;
 
     /**
      * To ensure compatibility after degradation, the new version can still restore the
@@ -42,8 +47,15 @@ public class PulsarCommittable {
         this(txnID);
     }
 
+    public PulsarCommittable(TxnID txnID, Map<String, BatchMessageIdImpl> latestPublishedMessages) {
+        this.txnID = txnID;
+        this.latestPublishedMessages = latestPublishedMessages;
+    }
+
+    @Deprecated
     public PulsarCommittable(TxnID txnID) {
         this.txnID = txnID;
+        this.latestPublishedMessages = Collections.emptyMap();
     }
 
     public TxnID getTxnID() {
@@ -76,5 +88,9 @@ public class PulsarCommittable {
     @Override
     public String toString() {
         return "PulsarCommittable{" + "txnID=" + txnID + '}';
+    }
+
+    public Map<String, BatchMessageIdImpl> getLatestPublishedMessages() {
+        return latestPublishedMessages;
     }
 }

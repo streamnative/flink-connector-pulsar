@@ -26,6 +26,7 @@ import org.apache.flink.connector.pulsar.sink.config.SinkConfiguration;
 import org.apache.flink.connector.pulsar.testutils.PulsarTestSuiteBase;
 
 import org.apache.pulsar.client.api.Message;
+import org.apache.pulsar.client.api.MessageId;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.SchemaSerializationException;
 import org.apache.pulsar.client.api.TypedMessageBuilder;
@@ -66,12 +67,9 @@ class ProducerRegisterTest extends PulsarTestSuiteBase {
         register.createMessageBuilder(topic, Schema.STRING).value(message).send();
 
         if (deliveryGuarantee == EXACTLY_ONCE) {
-            List<PulsarCommittable> committables = register.prepareCommit();
-            for (PulsarCommittable committable : committables) {
-                TxnID txnID = committable.getTxnID();
-                TransactionCoordinatorClient coordinatorClient = operator().coordinatorClient();
-                coordinatorClient.commit(txnID);
-            }
+            TxnID txnID = register.prepareCommit();
+            TransactionCoordinatorClient coordinatorClient = operator().coordinatorClient();
+            coordinatorClient.commit(txnID);
         }
 
         Message<String> receiveMessage = operator().receiveMessage(topic, Schema.STRING);
@@ -96,8 +94,8 @@ class ProducerRegisterTest extends PulsarTestSuiteBase {
         String message = randomAlphabetic(10);
         register.createMessageBuilder(topic, Schema.STRING).value(message).sendAsync();
 
-        List<PulsarCommittable> committables = register.prepareCommit();
-        assertThat(committables).isEmpty();
+        TxnID txnID = register.prepareCommit();
+        assertThat(txnID).isNull();
     }
 
     @Disabled(

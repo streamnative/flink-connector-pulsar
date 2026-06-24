@@ -21,6 +21,9 @@ package org.apache.flink.connector.pulsar.common.config;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.configuration.ConfigOption;
 
+import org.apache.pulsar.client.admin.PulsarAdmin;
+import org.apache.pulsar.client.admin.PulsarAdminBuilder;
+import org.apache.pulsar.client.admin.internal.PulsarAdminImpl;
 import org.apache.pulsar.client.api.Authentication;
 import org.apache.pulsar.client.api.AuthenticationFactory;
 import org.apache.pulsar.client.api.ClientBuilder;
@@ -30,6 +33,8 @@ import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.impl.auth.AuthenticationDisabled;
 
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.function.ObjIntConsumer;
@@ -178,6 +183,91 @@ public final class PulsarClientFactory {
                 });
 
         return builder.build();
+    }
+
+    /** Create a PulsarAdmin by using the flink Configuration and the config customizer. */
+    public static PulsarAdminImpl createAdminClient(PulsarConfiguration configuration)
+            throws PulsarClientException {
+        PulsarAdminBuilder builder = PulsarAdmin.builder();
+
+        // Create the authentication instance for the Pulsar admin client.
+        builder.authentication(createAuthentication(configuration));
+
+        // Derive the admin HTTP URL from the service URL.
+        String serviceUrl = configuration.get(PULSAR_SERVICE_URL);
+        builder.serviceHttpUrl(getAdminUrl(serviceUrl));
+
+        // TLS settings.
+        configuration.useOption(PULSAR_TLS_KEY_FILE_PATH, builder::tlsKeyFilePath);
+        configuration.useOption(PULSAR_TLS_CERTIFICATE_FILE_PATH, builder::tlsCertificateFilePath);
+        configuration.useOption(PULSAR_TLS_TRUST_CERTS_FILE_PATH, builder::tlsTrustCertsFilePath);
+        configuration.useOption(
+                PULSAR_TLS_ALLOW_INSECURE_CONNECTION, builder::allowTlsInsecureConnection);
+        configuration.useOption(
+                PULSAR_TLS_HOSTNAME_VERIFICATION_ENABLE,
+                builder::enableTlsHostnameVerification);
+        configuration.useOption(PULSAR_USE_KEY_STORE_TLS, builder::useKeyStoreTls);
+        configuration.useOption(PULSAR_SSL_PROVIDER, builder::sslProvider);
+        configuration.useOption(PULSAR_TLS_KEY_STORE_TYPE, builder::tlsKeyStoreType);
+        configuration.useOption(PULSAR_TLS_KEY_STORE_PATH, builder::tlsKeyStorePath);
+        configuration.useOption(PULSAR_TLS_KEY_STORE_PASSWORD, builder::tlsKeyStorePassword);
+        configuration.useOption(PULSAR_TLS_TRUST_STORE_TYPE, builder::tlsTrustStoreType);
+        configuration.useOption(PULSAR_TLS_TRUST_STORE_PATH, builder::tlsTrustStorePath);
+        configuration.useOption(PULSAR_TLS_TRUST_STORE_PASSWORD, builder::tlsTrustStorePassword);
+        configuration.useOption(PULSAR_TLS_CIPHERS, TreeSet::new, builder::tlsCiphers);
+        configuration.useOption(PULSAR_TLS_PROTOCOLS, TreeSet::new, builder::tlsProtocols);
+
+        // Timeout settings.
+        configuration.useOption(
+                PULSAR_CONNECTION_TIMEOUT_MS,
+                v -> builder.connectionTimeout(v, MILLISECONDS));
+        configuration.useOption(
+                PULSAR_REQUEST_TIMEOUT_MS, v -> builder.requestTimeout(v, MILLISECONDS));
+
+        return (PulsarAdminImpl) builder.build();
+    }
+
+    private static String getAdminUrl(String serviceUrl) {
+        String firstUrl = serviceUrl.split(",")[0].trim();
+        URI uri = URI.create(firstUrl);
+        String scheme = uri.getScheme();
+
+        if (!"pulsar".equals(scheme) && !"pulsar+ssl".equals(scheme)) {
+            return firstUrl;
+        }
+
+        String newScheme;
+        int defaultBrokerPort;
+        int defaultAdminPort;
+        if ("pulsar".equals(scheme)) {
+            newScheme = "http";
+            defaultBrokerPort = 6650;
+            defaultAdminPort = 8080;
+        } else {
+            newScheme = "https";
+            defaultBrokerPort = 6651;
+            defaultAdminPort = 8443;
+        }
+
+        String host = uri.getHost();
+        int port = uri.getPort();
+        if (port == -1 || port == defaultBrokerPort) {
+            port = defaultAdminPort;
+        }
+
+        try {
+            return new URI(
+                            newScheme,
+                            uri.getUserInfo(),
+                            host,
+                            port,
+                            uri.getPath(),
+                            uri.getQuery(),
+                            uri.getFragment())
+                    .toString();
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid service URL: " + serviceUrl, e);
+        }
     }
 
     /**
