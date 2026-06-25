@@ -297,6 +297,7 @@ class PulsarDeserializationSchemaTest extends PulsarTestSuiteBase {
         return PulsarSource.builder()
                 .setDeserializationSchema(deserializationSchema)
                 .setServiceUrl(operator().serviceUrl())
+                .setAdminUrl(operator().adminUrl())
                 .setTopics(topicName)
                 .setSubscriptionName(topicName + "-subscription")
                 .setBoundedStopCursor(StopCursor.latest())

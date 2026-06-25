@@ -97,13 +97,16 @@ class PulsarSinkBuilderTest {
     }
 
     @Test
-    void serviceUrlMustBeProvided() {
+    void serviceUrlAndAdminUrlMustBeProvided() {
         PulsarSinkBuilder<String> builder = PulsarSink.builder();
         builder.setSerializationSchema(new SimpleStringSchema());
         builder.setTopics("a", "b");
         assertThatThrownBy(builder::build).isInstanceOf(IllegalArgumentException.class);
 
         builder.setServiceUrl("pulsar://127.0.0.1:8888");
+        assertThatThrownBy(builder::build).isInstanceOf(IllegalArgumentException.class);
+
+        builder.setAdminUrl("http://127.0.0.1:9999");
         assertThatCode(builder::build).doesNotThrowAnyException();
     }
 }

@@ -22,8 +22,6 @@ import org.apache.flink.annotation.Internal;
 import org.apache.flink.configuration.ConfigOption;
 
 import org.apache.pulsar.client.admin.PulsarAdmin;
-import org.apache.pulsar.client.admin.PulsarAdminBuilder;
-import org.apache.pulsar.client.admin.internal.PulsarAdminImpl;
 import org.apache.pulsar.client.api.Authentication;
 import org.apache.pulsar.client.api.AuthenticationFactory;
 import org.apache.pulsar.client.api.ClientBuilder;
@@ -33,8 +31,6 @@ import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.impl.auth.AuthenticationDisabled;
 
 import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.function.ObjIntConsumer;
@@ -43,13 +39,16 @@ import static java.util.Collections.singletonMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_ADMIN_URL;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_AUTH_PARAMS;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_AUTH_PARAM_MAP;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_AUTH_PLUGIN_CLASS_NAME;
+import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_AUTO_CERT_REFRESH_TIME;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_CONCURRENT_LOOKUP_REQUEST;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_CONNECTIONS_PER_BROKER;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_CONNECTION_MAX_IDLE_SECONDS;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_CONNECTION_TIMEOUT_MS;
+import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_CONNECT_TIMEOUT;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_DNS_LOOKUP_BIND_ADDRESS;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_ENABLE_BUSY_WAIT;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_ENABLE_TRANSACTION;
@@ -67,6 +66,8 @@ import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULS
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_OPERATION_TIMEOUT_MS;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_PROXY_PROTOCOL;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_PROXY_SERVICE_URL;
+import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_READ_TIMEOUT;
+import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_REQUEST_TIMEOUT;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_REQUEST_TIMEOUT_MS;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_SERVICE_URL;
 import static org.apache.flink.connector.pulsar.common.config.PulsarOptions.PULSAR_SOCKS5_PROXY_ADDRESS;
@@ -185,27 +186,25 @@ public final class PulsarClientFactory {
         return builder.build();
     }
 
-    /** Create a PulsarAdmin by using the flink Configuration and the config customizer. */
-    public static PulsarAdminImpl createAdminClient(PulsarConfiguration configuration)
+    /**
+     * PulsarAdmin shares almost the same configuration with PulsarClient, but we separate this
+     * creating method for directly use it.
+     */
+    public static PulsarAdmin createAdmin(PulsarConfiguration configuration)
             throws PulsarClientException {
-        PulsarAdminBuilder builder = PulsarAdmin.builder();
+        PulsarAdminProxyBuilder builder = new PulsarAdminProxyBuilder(configuration);
 
-        // Create the authentication instance for the Pulsar admin client.
+        // Create the authentication instance for the Pulsar client.
         builder.authentication(createAuthentication(configuration));
 
-        // Derive the admin HTTP URL from the service URL.
-        String serviceUrl = configuration.get(PULSAR_SERVICE_URL);
-        builder.serviceHttpUrl(getAdminUrl(serviceUrl));
-
-        // TLS settings.
+        configuration.useOption(PULSAR_ADMIN_URL, builder::serviceHttpUrl);
         configuration.useOption(PULSAR_TLS_KEY_FILE_PATH, builder::tlsKeyFilePath);
         configuration.useOption(PULSAR_TLS_CERTIFICATE_FILE_PATH, builder::tlsCertificateFilePath);
         configuration.useOption(PULSAR_TLS_TRUST_CERTS_FILE_PATH, builder::tlsTrustCertsFilePath);
         configuration.useOption(
                 PULSAR_TLS_ALLOW_INSECURE_CONNECTION, builder::allowTlsInsecureConnection);
         configuration.useOption(
-                PULSAR_TLS_HOSTNAME_VERIFICATION_ENABLE,
-                builder::enableTlsHostnameVerification);
+                PULSAR_TLS_HOSTNAME_VERIFICATION_ENABLE, builder::enableTlsHostnameVerification);
         configuration.useOption(PULSAR_USE_KEY_STORE_TLS, builder::useKeyStoreTls);
         configuration.useOption(PULSAR_SSL_PROVIDER, builder::sslProvider);
         configuration.useOption(PULSAR_TLS_KEY_STORE_TYPE, builder::tlsKeyStoreType);
@@ -216,58 +215,16 @@ public final class PulsarClientFactory {
         configuration.useOption(PULSAR_TLS_TRUST_STORE_PASSWORD, builder::tlsTrustStorePassword);
         configuration.useOption(PULSAR_TLS_CIPHERS, TreeSet::new, builder::tlsCiphers);
         configuration.useOption(PULSAR_TLS_PROTOCOLS, TreeSet::new, builder::tlsProtocols);
-
-        // Timeout settings.
         configuration.useOption(
-                PULSAR_CONNECTION_TIMEOUT_MS,
-                v -> builder.connectionTimeout(v, MILLISECONDS));
+                PULSAR_CONNECT_TIMEOUT, v -> builder.connectionTimeout(v, MILLISECONDS));
+        configuration.useOption(PULSAR_READ_TIMEOUT, v -> builder.readTimeout(v, MILLISECONDS));
         configuration.useOption(
-                PULSAR_REQUEST_TIMEOUT_MS, v -> builder.requestTimeout(v, MILLISECONDS));
+                PULSAR_REQUEST_TIMEOUT, v -> builder.requestTimeout(v, MILLISECONDS));
+        configuration.useOption(
+                PULSAR_AUTO_CERT_REFRESH_TIME, v -> builder.autoCertRefreshTime(v, MILLISECONDS));
+        configuration.useOption(PULSAR_NUM_IO_THREADS, builder::numIoThreads);
 
-        return (PulsarAdminImpl) builder.build();
-    }
-
-    private static String getAdminUrl(String serviceUrl) {
-        String firstUrl = serviceUrl.split(",")[0].trim();
-        URI uri = URI.create(firstUrl);
-        String scheme = uri.getScheme();
-
-        if (!"pulsar".equals(scheme) && !"pulsar+ssl".equals(scheme)) {
-            return firstUrl;
-        }
-
-        String newScheme;
-        int defaultBrokerPort;
-        int defaultAdminPort;
-        if ("pulsar".equals(scheme)) {
-            newScheme = "http";
-            defaultBrokerPort = 6650;
-            defaultAdminPort = 8080;
-        } else {
-            newScheme = "https";
-            defaultBrokerPort = 6651;
-            defaultAdminPort = 8443;
-        }
-
-        String host = uri.getHost();
-        int port = uri.getPort();
-        if (port == -1 || port == defaultBrokerPort) {
-            port = defaultAdminPort;
-        }
-
-        try {
-            return new URI(
-                            newScheme,
-                            uri.getUserInfo(),
-                            host,
-                            port,
-                            uri.getPath(),
-                            uri.getQuery(),
-                            uri.getFragment())
-                    .toString();
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Invalid service URL: " + serviceUrl, e);
-        }
+        return builder.build();
     }
 
     /**

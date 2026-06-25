@@ -138,6 +138,7 @@ class PulsarSinkITCase {
             PulsarSink<String> sink =
                     PulsarSink.builder()
                             .setServiceUrl(operator().serviceUrl())
+                            .setAdminUrl(operator().adminUrl())
                             .setDeliveryGuarantee(guarantee)
                             .setTopics(topic)
                             .setSerializationSchema(new SimpleStringSchema())

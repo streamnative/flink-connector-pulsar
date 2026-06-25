@@ -26,8 +26,8 @@ import org.apache.flink.connector.pulsar.sink.PulsarSink;
 import org.apache.flink.connector.pulsar.sink.config.SinkConfiguration;
 import org.apache.flink.util.FlinkRuntimeException;
 
+import org.apache.pulsar.client.admin.PulsarAdmin;
 import org.apache.pulsar.client.admin.PulsarAdminException;
-import org.apache.pulsar.client.admin.internal.PulsarAdminImpl;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -49,7 +49,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.flink.connector.pulsar.common.config.PulsarClientFactory.createAdminClient;
+import static org.apache.flink.connector.pulsar.common.config.PulsarClientFactory.createAdmin;
 import static org.apache.flink.connector.pulsar.common.config.PulsarClientFactory.createClient;
 import static org.apache.flink.connector.pulsar.common.utils.PulsarTransactionUtils.getTcClient;
 import static org.apache.flink.util.Preconditions.checkNotNull;
@@ -69,7 +69,7 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
     private final SinkConfiguration sinkConfiguration;
 
     private PulsarClient pulsarClient;
-    private PulsarAdminImpl pulsarAdmin;
+    private PulsarAdmin pulsarAdmin;
     private TransactionCoordinatorClient coordinatorClient;
 
     public PulsarCommitter(
@@ -87,7 +87,7 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
         }
         // Older version data that was stored in the checkpoint.
         if (requests.size() > 1) {
-            commitV1(requests);
+            commitMultipleTransactions(requests);
             return;
         }
 
@@ -229,7 +229,7 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
         }
     }
 
-    public void commitV1(Collection<CommitRequest<PulsarCommittable>> requests)
+    public void commitMultipleTransactions(Collection<CommitRequest<PulsarCommittable>> requests)
         throws PulsarClientException {
         TransactionCoordinatorClient client = transactionCoordinatorClient();
 
@@ -255,7 +255,7 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
             throws PulsarClientException {
         if (coordinatorClient == null) {
             this.pulsarClient = createClient(sinkConfiguration);
-            this.pulsarAdmin = createAdminClient(sinkConfiguration);
+            this.pulsarAdmin = createAdmin(sinkConfiguration);
             this.coordinatorClient = getTcClient(pulsarClient);
         }
 
