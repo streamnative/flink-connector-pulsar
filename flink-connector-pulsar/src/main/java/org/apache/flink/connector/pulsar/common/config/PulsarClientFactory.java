@@ -22,6 +22,7 @@ import org.apache.flink.annotation.Internal;
 import org.apache.flink.configuration.ConfigOption;
 
 import org.apache.pulsar.client.admin.PulsarAdmin;
+import org.apache.pulsar.client.admin.PulsarAdminBuilder;
 import org.apache.pulsar.client.api.Authentication;
 import org.apache.pulsar.client.api.AuthenticationFactory;
 import org.apache.pulsar.client.api.ClientBuilder;
@@ -192,7 +193,7 @@ public final class PulsarClientFactory {
      */
     public static PulsarAdmin createAdmin(PulsarConfiguration configuration)
             throws PulsarClientException {
-        PulsarAdminProxyBuilder builder = new PulsarAdminProxyBuilder(configuration);
+        PulsarAdminBuilder builder = PulsarAdmin.builder();
 
         // Create the authentication instance for the Pulsar client.
         builder.authentication(createAuthentication(configuration));
@@ -222,7 +223,6 @@ public final class PulsarClientFactory {
                 PULSAR_REQUEST_TIMEOUT, v -> builder.requestTimeout(v, MILLISECONDS));
         configuration.useOption(
                 PULSAR_AUTO_CERT_REFRESH_TIME, v -> builder.autoCertRefreshTime(v, MILLISECONDS));
-        configuration.useOption(PULSAR_NUM_IO_THREADS, builder::numIoThreads);
 
         return builder.build();
     }

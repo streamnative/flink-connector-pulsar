@@ -86,6 +86,8 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
             return;
         }
         // Older version data that was stored in the checkpoint.
+        // Old versions created one committable per topic per checkpoint. Those checkpoints
+        // cannot guarantee exactly-once and are no longer improved.
         if (requests.size() > 1) {
             commitMultipleTransactions(requests);
             return;
@@ -102,6 +104,11 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
         }
         TxnID txnID = committable.getTxnID();
         TransactionCoordinatorClient client = transactionCoordinatorClient();
+        // All topics in this transaction share the same txnID. Committing the txnID
+        // atomically commits all topics — we only need to successfully query the message
+        // state for one topic to decide whether to commit. If getMessagesById fails for
+        // a topic, we can safely skip it and try the next one; a successful commit on any
+        // topic will cover the entire transaction.
         int messagesFailedQuery = 0;
         for (Map.Entry<String, BatchMessageIdImpl> topicMsgPair : latestMsgIdMap.entrySet()) {
             String topic = topicMsgPair.getKey();
@@ -282,6 +289,9 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
     public void close() throws IOException {
         if (pulsarClient != null) {
             pulsarClient.close();
+        }
+        if (pulsarAdmin != null) {
+            pulsarAdmin.close();
         }
     }
 }

@@ -286,6 +286,14 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
             if (txnID == null) {
                 return Collections.emptyList();
             }
+            // No race condition here: Flink guarantees flush() is called before
+            // prepareCommit(), and flush() blocks until all pending async writes
+            // (and their callbacks) have completed. This prevents the following race:
+            //   If an async callback from sendAsync() fires and inserts a new entry
+            //   into this.latestPublishedMessages between putAll() and clear() below,
+            //   that entry would be silently lost — the message ID would never reach
+            //   the committer, making it impossible to verify and commit the transaction.
+            // Since flush() drains all pending callbacks, no such insertion can occur.
             Map<String, BatchMessageIdImpl> latestPublishedMessages = new HashMap<>();
             latestPublishedMessages.putAll(this.latestPublishedMessages);
             this.latestPublishedMessages.clear();
