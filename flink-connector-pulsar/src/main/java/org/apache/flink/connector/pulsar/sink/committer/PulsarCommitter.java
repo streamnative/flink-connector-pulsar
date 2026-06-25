@@ -18,9 +18,6 @@
 
 package org.apache.flink.connector.pulsar.sink.committer;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import org.apache.flink.annotation.Internal;
 import org.apache.flink.api.connector.sink2.Committer;
 import org.apache.flink.api.connector.sink2.CommitterInitContext;
@@ -48,6 +45,9 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import static org.apache.flink.connector.pulsar.common.config.PulsarClientFactory.createAdminClient;
 import static org.apache.flink.connector.pulsar.common.config.PulsarClientFactory.createClient;
@@ -102,6 +102,7 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
         }
         TxnID txnID = committable.getTxnID();
         TransactionCoordinatorClient client =  transactionCoordinatorClient();
+        int messagesFailedQuery = 0;
         for (Map.Entry<String, BatchMessageIdImpl> topicMsgPair : latestMsgIdMap.entrySet()) {
             String topic = topicMsgPair.getKey();
             BatchMessageIdImpl messageId = topicMsgPair.getValue();
@@ -110,6 +111,7 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
               messages = pulsarAdmin.topics().getMessagesById(topic, messageId.getLedgerId(),
                         messageId.getEntryId());
             } catch (PulsarAdminException e) {
+                messagesFailedQuery++;
                 LOG.warn("{} Failed to query message by ID {}", topic, messageId);
                 continue;
             }
@@ -124,7 +126,7 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
             String aborted = props.get(TXN_ABORTED);
             String uncommitted = props.get(TXN_UNCOMMITTED);
             if ("true".equals(aborted) || "TRUE".equals(aborted)) {
-                String logMsg = String .format("The transaction %s has been aborted, relates to %s", txnID, latestMsgIdMap);
+                String logMsg = String.format("The transaction %s has been aborted, relates to %s", txnID, latestMsgIdMap);
                 LOG.warn(logMsg);
                 request.signalFailedWithKnownReason(new FlinkRuntimeException(logMsg));
                 return;
@@ -137,18 +139,33 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
                     handleError(request, txnID, committable, e);
                 }
                 return;
+            } else {
+                request.signalAlreadyCommitted();
+                return;
             }
-
         }
-        String logMsg = String .format("The messages related the transaction %s have all been expired, the transaction"
-                + " can not be commit anymore, relates to %s", txnID, latestMsgIdMap);
+        if (messagesFailedQuery > 0) {
+            int maxRecommitTimes = sinkConfiguration.getMaxRecommitTimes();
+            if (request.getNumberOfRetries() < maxRecommitTimes) {
+                request.retryLater();
+            } else {
+                String logMsg = String.format("The messages can not be queried by Pulsar Admin Client, please check the"
+                            + " configurations. txnID: %s, messages: %s", txnID, latestMsgIdMap);
+                LOG.warn(logMsg);
+                request.signalFailedWithKnownReason(new FlinkRuntimeException(logMsg));
+            }
+            return;
+        }
+        String logMsg =
+                String.format("The messages related the transaction %s have all been expired, the transaction"
+                        + " can not be commit anymore, relates to %s", txnID, latestMsgIdMap);
         LOG.warn(logMsg);
         request.signalFailedWithKnownReason(new FlinkRuntimeException(logMsg));
     }
 
     private void handleError(CommitRequest<PulsarCommittable> request, TxnID txnID, PulsarCommittable committable,
                              Exception e) {
-        if ( e instanceof CoordinatorNotFoundException) {
+        if (e instanceof CoordinatorNotFoundException) {
             LOG.error(
                     "We couldn't find the Transaction Coordinator from Pulsar broker {}. "
                             + "Check your broker configuration.",
@@ -211,7 +228,6 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
             request.signalFailedWithUnknownReason(e);
         }
     }
-
 
     public void commitV1(Collection<CommitRequest<PulsarCommittable>> requests)
         throws PulsarClientException {

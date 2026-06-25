@@ -84,6 +84,46 @@ class PulsarWriterTest extends PulsarTestSuiteBase {
     }
 
     @Test
+    void prepareCommitReturnsCommittableWithLatestPublishedMessages() throws Exception {
+        String topic = "writer-msgid-" + randomAlphabetic(10);
+        operator().createTopic(topic, 8);
+        MetadataListener listener = new MetadataListener(singletonList(topic));
+
+        SinkConfiguration configuration = sinkConfiguration(EXACTLY_ONCE);
+        TopicRouter<String> router = new DynamicTopicRouter<>(configuration, topic);
+        PulsarSerializationSchema<String> schema = new PulsarSchemaWrapper<>(STRING);
+        FixedMessageDelayer<String> delayer = MessageDelayer.never();
+        MockInitContext initContext = new MockInitContext();
+
+        PulsarWriter<String> writer =
+                new PulsarWriter<>(
+                        configuration,
+                        schema,
+                        listener,
+                        router,
+                        delayer,
+                        PulsarCrypto.disabled(),
+                        initContext);
+
+        String message = randomAlphabetic(10);
+        writer.write(message, CONTEXT);
+        writer.flush(false);
+
+        Collection<PulsarCommittable> committables = writer.prepareCommit();
+        assertThat(committables).hasSize(1);
+        PulsarCommittable committable =
+                committables.stream().findFirst().orElseThrow(IllegalArgumentException::new);
+        assertThat(committable.getLatestPublishedMessages()).isNotEmpty();
+        assertThat(committable.getLatestPublishedMessages()).containsKey(topic);
+
+        TransactionCoordinatorClient coordinatorClient = operator().coordinatorClient();
+        coordinatorClient.commit(committable.getTxnID());
+
+        String consumedMessage = operator().receiveMessage(topic, STRING).getValue();
+        assertThat(consumedMessage).isEqualTo(message);
+    }
+
+    @Test
     void writeMessagesToPulsarWithTopicAutoCreation() throws Exception {
         String topic = "non-existed-topic-" + randomAlphabetic(10);
         MetadataListener listener = new MetadataListener();
