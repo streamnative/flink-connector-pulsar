@@ -35,15 +35,20 @@ public class PulsarCommittable {
 
     private final Map<String, MessageIdPojo> latestPublishedMessages;
 
+    private final int version;
+
     public PulsarCommittable(TxnID txnID, Map<String, MessageIdPojo> latestPublishedMessages) {
         this.txnID = txnID;
         this.latestPublishedMessages = latestPublishedMessages;
+        this.version = 2;
     }
 
+    // This constructor should only be used by PulsarCommittableSerializer.
     @Deprecated
     public PulsarCommittable(TxnID txnID) {
         this.txnID = txnID;
         this.latestPublishedMessages = Collections.emptyMap();
+        this.version = 1;
     }
 
     public TxnID getTxnID() {
@@ -52,6 +57,10 @@ public class PulsarCommittable {
 
     public Map<String, MessageIdPojo> getLatestPublishedMessages() {
         return latestPublishedMessages;
+    }
+
+    public int getVersion() {
+        return version;
     }
 
     @Override

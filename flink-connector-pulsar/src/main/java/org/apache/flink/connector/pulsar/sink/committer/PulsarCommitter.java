@@ -38,7 +38,6 @@ import org.apache.pulsar.client.api.transaction.TransactionCoordinatorClientExce
 import org.apache.pulsar.client.api.transaction.TransactionCoordinatorClientException.MetaStoreHandlerNotExistsException;
 import org.apache.pulsar.client.api.transaction.TransactionCoordinatorClientException.TransactionNotFoundException;
 import org.apache.pulsar.client.api.transaction.TxnID;
-import org.apache.pulsar.client.impl.BatchMessageIdImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,27 +87,25 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
         // Older version data that was stored in the checkpoint.
         // Old versions created one committable per topic per checkpoint. Those checkpoints
         // cannot guarantee exactly-once and are no longer improved.
-        if (requests.size() > 1) {
+        TransactionCoordinatorClient client = transactionCoordinatorClient();
+        CommitRequest<PulsarCommittable> firstRequest = requests.iterator().next();
+        PulsarCommittable firstCommittable = firstRequest.getCommittable();
+        if (requests.size() > 1 || firstCommittable.getVersion() == 1) {
             commitMultipleTransactions(requests);
             return;
         }
 
         // Newest version data.
-        TransactionCoordinatorClient client = transactionCoordinatorClient();
-        Iterator<CommitRequest<PulsarCommittable>> iterator = requests.iterator();
-        CommitRequest<PulsarCommittable> request = iterator.next();
-        PulsarCommittable committable = request.getCommittable();
-        TxnID txnID = committable.getTxnID();
-
+        TxnID txnID = firstCommittable.getTxnID();
         // No messages were published.
-        Map<String, MessageIdPojo> latestMsgIdMap = committable.getLatestPublishedMessages();
+        Map<String, MessageIdPojo> latestMsgIdMap = firstCommittable.getLatestPublishedMessages();
         if (latestMsgIdMap.isEmpty()) {
             try {
                 client.commit(txnID);
             } catch (Exception e) {
                 // Since no message relates to the transaction, we can ignore the error.
-                LOG.warn("Failed to commit an empty transaction. {}", committable, e);
-                request.signalAlreadyCommitted();
+                LOG.warn("Failed to commit an empty transaction. {}", firstCommittable, e);
+                firstRequest.signalAlreadyCommitted();
             }
             return;
         }
@@ -152,7 +149,7 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
                                 "The transaction %s has been aborted, relates to %s",
                                 txnID, latestMsgIdMap);
                 LOG.warn(logMsg);
-                request.signalFailedWithKnownReason(new FlinkRuntimeException(logMsg));
+                firstRequest.signalFailedWithKnownReason(new FlinkRuntimeException(logMsg));
                 return;
             }
 
@@ -160,18 +157,18 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
                 try {
                     client.commit(txnID);
                 } catch (Exception e) {
-                    handleError(request, txnID, committable, e);
+                    handleError(firstRequest, txnID, firstCommittable, e);
                 }
                 return;
             } else {
-                request.signalAlreadyCommitted();
+                firstRequest.signalAlreadyCommitted();
                 return;
             }
         }
         if (messagesFailedQuery > 0) {
             int maxRecommitTimes = sinkConfiguration.getMaxRecommitTimes();
-            if (request.getNumberOfRetries() < maxRecommitTimes) {
-                request.retryLater();
+            if (firstRequest.getNumberOfRetries() < maxRecommitTimes) {
+                firstRequest.retryLater();
             } else {
                 String logMsg =
                         String.format(
@@ -179,7 +176,7 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
                                         + " configurations. txnID: %s, messages: %s",
                                 txnID, latestMsgIdMap);
                 LOG.warn(logMsg);
-                request.signalFailedWithKnownReason(new FlinkRuntimeException(logMsg));
+                firstRequest.signalFailedWithKnownReason(new FlinkRuntimeException(logMsg));
             }
             return;
         }
@@ -189,7 +186,7 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
                                 + " can not be commit anymore, relates to %s",
                         txnID, latestMsgIdMap);
         LOG.warn(logMsg);
-        request.signalFailedWithKnownReason(new FlinkRuntimeException(logMsg));
+        firstRequest.signalFailedWithKnownReason(new FlinkRuntimeException(logMsg));
     }
 
     private void handleError(
