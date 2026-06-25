@@ -20,15 +20,13 @@ package org.apache.flink.connector.pulsar.sink.committer;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Map;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
 
 import org.apache.pulsar.client.api.transaction.TxnID;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 /** A serializer used to serialize {@link PulsarCommittable}. */
@@ -36,12 +34,19 @@ public class PulsarCommittableSerializer implements SimpleVersionedSerializer<Pu
 
     private static final int VERSION_V1 = 1;
     private static final int VERSION_V2 = 1;
-    public static final String TOPIC_PLACEHOLDER = "Topic_Placeholder";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     {
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, false);
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, false);
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNRESOLVED_OBJECT_IDS, false);
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_TRAILING_TOKENS, false);
+        OBJECT_MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        OBJECT_MAPPER.configure(SerializationFeature.FAIL_ON_UNWRAPPED_TYPE_IDENTIFIERS, false);
     }
 
     @Override
@@ -59,77 +64,23 @@ public class PulsarCommittableSerializer implements SimpleVersionedSerializer<Pu
         if (version != VERSION_V1) {
             return deserializeV1(serialized);
         }
+        return deserializeV2(serialized);
+    }
+
+    private PulsarCommittable deserializeV1(byte[] serialized) throws IOException {
+        try (final ByteArrayInputStream bais = new ByteArrayInputStream(serialized);
+             final DataInputStream in = new DataInputStream(bais)) {
+            long mostSigBits = in.readLong();
+            long leastSigBits = in.readLong();
+            TxnID txnID = new TxnID(mostSigBits, leastSigBits);
+            return new PulsarCommittable(txnID);
+        }
+    }
+
+    private PulsarCommittable deserializeV2(byte[] serialized) throws IOException {
         PulsarCommittablePojo pulsarCommittablePojo = OBJECT_MAPPER.readValue(serialized, PulsarCommittablePojo.class);
-        TxnID txnID = new TxnID(pulsarCommittablePojo.txnID.mostSigBits, pulsarCommittablePojo.txnID.leastSigBits);
-        return new PulsarCommittable(txnID, pulsarCommittablePojo.latestPublishedMessages);
-    }
-
-    public PulsarCommittable deserializeV1(byte[] serialized) throws IOException {
-        try (final ByteArrayInputStream bais = new ByteArrayInputStream(serialized);
-             final DataInputStream in = new DataInputStream(bais)) {
-            long mostSigBits = in.readLong();
-            long leastSigBits = in.readLong();
-            TxnID txnID = new TxnID(mostSigBits, leastSigBits);
-            String topic = in.readUTF();
-            return new PulsarCommittable(txnID, topic);
-        }
-    }
-
-    public PulsarCommittable deserializeV2(byte[] serialized) throws IOException {
-        try (final ByteArrayInputStream bais = new ByteArrayInputStream(serialized);
-             final DataInputStream in = new DataInputStream(bais)) {
-            long mostSigBits = in.readLong();
-            long leastSigBits = in.readLong();
-            TxnID txnID = new TxnID(mostSigBits, leastSigBits);
-            String topic = in.readUTF();
-            return new PulsarCommittable(txnID, topic);
-        }
-    }
-
-    private static class PulsarCommittablePojo {
-        private TxnIdPojo txnID;
-        private Map<String, MessageIdPojo> latestPublishedMessages;
-
-        public PulsarCommittablePojo() {}
-
-        public TxnIdPojo getTxnID() {
-            return txnID;
-        }
-
-        public void setTxnID(TxnIdPojo txnID) {
-            this.txnID = txnID;
-        }
-
-        public Map<String, MessageIdPojo> getLatestPublishedMessages() {
-            return latestPublishedMessages;
-        }
-
-        public void setLatestPublishedMessages(
-                Map<String, MessageIdPojo> latestPublishedMessages) {
-            this.latestPublishedMessages = latestPublishedMessages;
-        }
-    }
-
-    private static class TxnIdPojo {
-        private long mostSigBits;
-        private long leastSigBits;
-
-        public TxnIdPojo() {}
-
-        public long getMostSigBits() {
-            return mostSigBits;
-        }
-
-        public void setMostSigBits(long mostSigBits) {
-            this.mostSigBits = mostSigBits;
-        }
-
-        public long getLeastSigBits() {
-            return leastSigBits;
-        }
-
-        public void setLeastSigBits(long leastSigBits) {
-            this.leastSigBits = leastSigBits;
-        }
+        TxnID txnID = new TxnID(pulsarCommittablePojo.getTxnID().getMostSigBits(),
+                pulsarCommittablePojo.getTxnID().getLeastSigBits());
+        return new PulsarCommittable(txnID, pulsarCommittablePojo.getLatestPublishedMessages());
     }
 }

@@ -21,7 +21,6 @@ package org.apache.flink.connector.pulsar.sink.committer;
 import org.apache.flink.annotation.PublicEvolving;
 
 import org.apache.pulsar.client.api.transaction.TxnID;
-import org.apache.pulsar.client.impl.BatchMessageIdImpl;
 
 import java.util.Collections;
 import java.util.Map;
@@ -36,17 +35,6 @@ public class PulsarCommittable {
 
     private final Map<String, MessageIdPojo> latestPublishedMessages;
 
-    /**
-     * To ensure compatibility after degradation, the new version can still restore the
-     * PulsarCommittable object already stored in the old version and keep this constructor.
-     *
-     * @deprecated the param @param topic is meaningless now.
-     */
-    @Deprecated
-    public PulsarCommittable(TxnID txnID, String topic) {
-        this(txnID);
-    }
-
     public PulsarCommittable(TxnID txnID, Map<String, MessageIdPojo> latestPublishedMessages) {
         this.txnID = txnID;
         this.latestPublishedMessages = latestPublishedMessages;
@@ -60,12 +48,6 @@ public class PulsarCommittable {
 
     public TxnID getTxnID() {
         return txnID;
-    }
-
-    /** @deprecated the param @param topic is meaningless now. */
-    @Deprecated
-    public String getTopic() {
-        return PulsarCommittableSerializer.TOPIC_PLACEHOLDER;
     }
 
     public Map<String, MessageIdPojo> getLatestPublishedMessages() {
