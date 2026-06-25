@@ -68,29 +68,30 @@ public class PulsarCommittable {
         return PulsarCommittableSerializer.TOPIC_PLACEHOLDER;
     }
 
+    public Map<String, BatchMessageIdImpl> getLatestPublishedMessages() {
+        return latestPublishedMessages;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof PulsarCommittable)) {
             return false;
         }
         PulsarCommittable that = (PulsarCommittable) o;
-        return Objects.equals(txnID, that.txnID);
+        return Objects.equals(txnID, that.txnID) && Objects.equals(latestPublishedMessages,
+                that.latestPublishedMessages);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(txnID);
+        return Objects.hash(txnID, latestPublishedMessages);
     }
 
     @Override
     public String toString() {
-        return "PulsarCommittable{" + "txnID=" + txnID + '}';
-    }
-
-    public Map<String, BatchMessageIdImpl> getLatestPublishedMessages() {
-        return latestPublishedMessages;
+        return "PulsarCommittable{" +
+                "txnID=" + txnID +
+                ", latestPublishedMessages=" + latestPublishedMessages +
+                '}';
     }
 }
