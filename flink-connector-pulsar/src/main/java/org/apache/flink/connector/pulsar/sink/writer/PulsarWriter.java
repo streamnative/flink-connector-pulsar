@@ -26,6 +26,7 @@ import org.apache.flink.api.connector.sink2.CommittingSinkWriter;
 import org.apache.flink.api.connector.sink2.WriterInitContext;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.pulsar.common.crypto.PulsarCrypto;
+import org.apache.flink.connector.pulsar.sink.committer.MessageIdPojo;
 import org.apache.flink.connector.pulsar.sink.committer.PulsarCommittable;
 import org.apache.flink.connector.pulsar.sink.config.SinkConfiguration;
 import org.apache.flink.connector.pulsar.sink.writer.context.PulsarSinkContext;
@@ -46,7 +47,6 @@ import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.TypedMessageBuilder;
 import org.apache.pulsar.client.api.transaction.TxnID;
-import org.apache.pulsar.client.impl.BatchMessageIdImpl;
 import org.apache.pulsar.client.impl.TypedMessageBuilderImpl;
 import org.apache.pulsar.shade.com.google.common.base.Strings;
 import org.slf4j.Logger;
@@ -85,7 +85,7 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
     private final ProducerRegister producerRegister;
     private final MailboxExecutor mailboxExecutor;
     private final AtomicLong pendingMessages;
-    private final ConcurrentHashMap<String, BatchMessageIdImpl> latestPublishedMessages =
+    private final ConcurrentHashMap<String, MessageIdPojo> latestPublishedMessages =
             new ConcurrentHashMap<>();
 
     /**
@@ -184,7 +184,7 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
                             MessageIdAdv messageIdAdv = (MessageIdAdv) id;
                             latestPublishedMessages.put(
                                     topic,
-                                    new BatchMessageIdImpl(
+                                    new MessageIdPojo(
                                             messageIdAdv.getLedgerId(),
                                             messageIdAdv.getEntryId(),
                                             messageIdAdv.getBatchSize(),
@@ -294,7 +294,7 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
             //   that entry would be silently lost — the message ID would never reach
             //   the committer, making it impossible to verify and commit the transaction.
             // Since flush() drains all pending callbacks, no such insertion can occur.
-            Map<String, BatchMessageIdImpl> latestPublishedMessages = new HashMap<>();
+            Map<String, MessageIdPojo> latestPublishedMessages = new HashMap<>();
             latestPublishedMessages.putAll(this.latestPublishedMessages);
             this.latestPublishedMessages.clear();
             return Collections.singletonList(new PulsarCommittable(txnID, latestPublishedMessages));

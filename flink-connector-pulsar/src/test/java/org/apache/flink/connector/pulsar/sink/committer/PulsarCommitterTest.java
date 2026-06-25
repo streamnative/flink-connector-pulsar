@@ -104,8 +104,8 @@ class PulsarCommitterTest {
         injectMocks(committer);
 
         TxnID txnID = randomTxnID();
-        BatchMessageIdImpl msgId = new BatchMessageIdImpl(LEDGER_ID, ENTRY_ID, 0, 0);
-        Map<String, BatchMessageIdImpl> messages = Collections.singletonMap(TOPIC, msgId);
+        MessageIdPojo msgId = new MessageIdPojo(LEDGER_ID, ENTRY_ID, 0, 0);
+        Map<String, MessageIdPojo> messages = Collections.singletonMap(TOPIC, msgId);
         PulsarCommittable committable = new PulsarCommittable(txnID, messages);
         CommitRequest<PulsarCommittable> request = mockCommitRequest(committable);
 
@@ -128,8 +128,8 @@ class PulsarCommitterTest {
         injectMocks(committer);
 
         TxnID txnID = randomTxnID();
-        BatchMessageIdImpl msgId = new BatchMessageIdImpl(LEDGER_ID, ENTRY_ID, 0, 0);
-        Map<String, BatchMessageIdImpl> messages = Collections.singletonMap(TOPIC, msgId);
+        MessageIdPojo msgId = new MessageIdPojo(LEDGER_ID, ENTRY_ID, 0, 0);
+        Map<String, MessageIdPojo> messages = Collections.singletonMap(TOPIC, msgId);
         PulsarCommittable committable = new PulsarCommittable(txnID, messages);
         CommitRequest<PulsarCommittable> request = mockCommitRequest(committable);
 
@@ -145,8 +145,8 @@ class PulsarCommitterTest {
         injectMocks(committer);
 
         TxnID txnID = randomTxnID();
-        BatchMessageIdImpl msgId = new BatchMessageIdImpl(LEDGER_ID, ENTRY_ID, 0, 0);
-        Map<String, BatchMessageIdImpl> messages = Collections.singletonMap(TOPIC, msgId);
+        MessageIdPojo msgId = new MessageIdPojo(LEDGER_ID, ENTRY_ID, 0, 0);
+        Map<String, MessageIdPojo> messages = Collections.singletonMap(TOPIC, msgId);
         PulsarCommittable committable = new PulsarCommittable(txnID, messages);
         CommitRequest<PulsarCommittable> request = mockCommitRequest(committable);
 
@@ -163,8 +163,8 @@ class PulsarCommitterTest {
         injectMocks(committer);
 
         TxnID txnID = randomTxnID();
-        BatchMessageIdImpl msgId = new BatchMessageIdImpl(LEDGER_ID, ENTRY_ID, 0, 0);
-        Map<String, BatchMessageIdImpl> messages = Collections.singletonMap(TOPIC, msgId);
+        MessageIdPojo msgId = new MessageIdPojo(LEDGER_ID, ENTRY_ID, 0, 0);
+        Map<String, MessageIdPojo> messages = Collections.singletonMap(TOPIC, msgId);
         PulsarCommittable committable = new PulsarCommittable(txnID, messages);
         CommitRequest<PulsarCommittable> request = mockCommitRequest(committable, 0);
 
@@ -188,8 +188,8 @@ class PulsarCommitterTest {
         injectMocks(committer);
 
         TxnID txnID = randomTxnID();
-        BatchMessageIdImpl msgId = new BatchMessageIdImpl(LEDGER_ID, ENTRY_ID, 0, 0);
-        Map<String, BatchMessageIdImpl> messages = Collections.singletonMap(TOPIC, msgId);
+        MessageIdPojo msgId = new MessageIdPojo(LEDGER_ID, ENTRY_ID, 0, 0);
+        Map<String, MessageIdPojo> messages = Collections.singletonMap(TOPIC, msgId);
         PulsarCommittable committable = new PulsarCommittable(txnID, messages);
         CommitRequest<PulsarCommittable> request = mockCommitRequest(committable, 3);
 
@@ -213,8 +213,8 @@ class PulsarCommitterTest {
         injectMocks(committer);
 
         TxnID txnID = randomTxnID();
-        BatchMessageIdImpl msgId = new BatchMessageIdImpl(LEDGER_ID, ENTRY_ID, 0, 0);
-        Map<String, BatchMessageIdImpl> messages = Collections.singletonMap(TOPIC, msgId);
+        MessageIdPojo msgId = new MessageIdPojo(LEDGER_ID, ENTRY_ID, 0, 0);
+        Map<String, MessageIdPojo> messages = Collections.singletonMap(TOPIC, msgId);
         PulsarCommittable committable = new PulsarCommittable(txnID, messages);
         CommitRequest<PulsarCommittable> request = mockCommitRequest(committable, 1);
 

@@ -34,7 +34,7 @@ public class PulsarCommittable {
     /** The transaction id. */
     private final TxnID txnID;
 
-    private final Map<String, BatchMessageIdImpl> latestPublishedMessages;
+    private final Map<String, MessageIdPojo> latestPublishedMessages;
 
     /**
      * To ensure compatibility after degradation, the new version can still restore the
@@ -47,7 +47,7 @@ public class PulsarCommittable {
         this(txnID);
     }
 
-    public PulsarCommittable(TxnID txnID, Map<String, BatchMessageIdImpl> latestPublishedMessages) {
+    public PulsarCommittable(TxnID txnID, Map<String, MessageIdPojo> latestPublishedMessages) {
         this.txnID = txnID;
         this.latestPublishedMessages = latestPublishedMessages;
     }
@@ -68,7 +68,7 @@ public class PulsarCommittable {
         return PulsarCommittableSerializer.TOPIC_PLACEHOLDER;
     }
 
-    public Map<String, BatchMessageIdImpl> getLatestPublishedMessages() {
+    public Map<String, MessageIdPojo> getLatestPublishedMessages() {
         return latestPublishedMessages;
     }
 

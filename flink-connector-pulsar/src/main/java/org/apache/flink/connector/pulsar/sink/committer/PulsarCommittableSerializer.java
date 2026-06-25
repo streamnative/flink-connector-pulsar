@@ -18,6 +18,9 @@
 
 package org.apache.flink.connector.pulsar.sink.committer;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
 import org.apache.flink.core.io.SimpleVersionedSerializer;
 
 import org.apache.pulsar.client.api.transaction.TxnID;
@@ -31,38 +34,102 @@ import java.io.IOException;
 /** A serializer used to serialize {@link PulsarCommittable}. */
 public class PulsarCommittableSerializer implements SimpleVersionedSerializer<PulsarCommittable> {
 
-    private static final int CURRENT_VERSION = 1;
+    private static final int VERSION_V1 = 1;
+    private static final int VERSION_V2 = 1;
     public static final String TOPIC_PLACEHOLDER = "Topic_Placeholder";
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    {
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
+    }
 
     @Override
     public int getVersion() {
-        return CURRENT_VERSION;
+        return VERSION_V2;
     }
 
     @Override
     public byte[] serialize(PulsarCommittable obj) throws IOException {
-        try (final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                final DataOutputStream out = new DataOutputStream(baos)) {
-            TxnID txnID = obj.getTxnID();
-            out.writeLong(txnID.getMostSigBits());
-            out.writeLong(txnID.getLeastSigBits());
-            // To ensure compatibility after degradation, the old version can still restore the
-            // PulsarCommittable
-            // object already stored in the new version and write a meaningless topic name.
-            out.writeUTF(TOPIC_PLACEHOLDER);
-            out.flush();
-            return baos.toByteArray();
-        }
+        return OBJECT_MAPPER.writeValueAsBytes(obj);
     }
 
     @Override
     public PulsarCommittable deserialize(int version, byte[] serialized) throws IOException {
+        if (version != VERSION_V1) {
+            return deserializeV1(serialized);
+        }
+        PulsarCommittablePojo pulsarCommittablePojo = OBJECT_MAPPER.readValue(serialized, PulsarCommittablePojo.class);
+        TxnID txnID = new TxnID(pulsarCommittablePojo.txnID.mostSigBits, pulsarCommittablePojo.txnID.leastSigBits);
+        return new PulsarCommittable(txnID, pulsarCommittablePojo.latestPublishedMessages);
+    }
+
+    public PulsarCommittable deserializeV1(byte[] serialized) throws IOException {
         try (final ByteArrayInputStream bais = new ByteArrayInputStream(serialized);
-                final DataInputStream in = new DataInputStream(bais)) {
+             final DataInputStream in = new DataInputStream(bais)) {
             long mostSigBits = in.readLong();
             long leastSigBits = in.readLong();
             TxnID txnID = new TxnID(mostSigBits, leastSigBits);
-            return new PulsarCommittable(txnID);
+            String topic = in.readUTF();
+            return new PulsarCommittable(txnID, topic);
+        }
+    }
+
+    public PulsarCommittable deserializeV2(byte[] serialized) throws IOException {
+        try (final ByteArrayInputStream bais = new ByteArrayInputStream(serialized);
+             final DataInputStream in = new DataInputStream(bais)) {
+            long mostSigBits = in.readLong();
+            long leastSigBits = in.readLong();
+            TxnID txnID = new TxnID(mostSigBits, leastSigBits);
+            String topic = in.readUTF();
+            return new PulsarCommittable(txnID, topic);
+        }
+    }
+
+    private static class PulsarCommittablePojo {
+        private TxnIdPojo txnID;
+        private Map<String, MessageIdPojo> latestPublishedMessages;
+
+        public PulsarCommittablePojo() {}
+
+        public TxnIdPojo getTxnID() {
+            return txnID;
+        }
+
+        public void setTxnID(TxnIdPojo txnID) {
+            this.txnID = txnID;
+        }
+
+        public Map<String, MessageIdPojo> getLatestPublishedMessages() {
+            return latestPublishedMessages;
+        }
+
+        public void setLatestPublishedMessages(
+                Map<String, MessageIdPojo> latestPublishedMessages) {
+            this.latestPublishedMessages = latestPublishedMessages;
+        }
+    }
+
+    private static class TxnIdPojo {
+        private long mostSigBits;
+        private long leastSigBits;
+
+        public TxnIdPojo() {}
+
+        public long getMostSigBits() {
+            return mostSigBits;
+        }
+
+        public void setMostSigBits(long mostSigBits) {
+            this.mostSigBits = mostSigBits;
+        }
+
+        public long getLeastSigBits() {
+            return leastSigBits;
+        }
+
+        public void setLeastSigBits(long leastSigBits) {
+            this.leastSigBits = leastSigBits;
         }
     }
 }

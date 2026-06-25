@@ -98,7 +98,7 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
         CommitRequest<PulsarCommittable> request = iterator.next();
         PulsarCommittable committable = request.getCommittable();
         // No messages were published.
-        Map<String, BatchMessageIdImpl> latestMsgIdMap = committable.getLatestPublishedMessages();
+        Map<String, MessageIdPojo> latestMsgIdMap = committable.getLatestPublishedMessages();
         if (latestMsgIdMap.isEmpty()) {
             return;
         }
@@ -110,9 +110,9 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
         // a topic, we can safely skip it and try the next one; a successful commit on any
         // topic will cover the entire transaction.
         int messagesFailedQuery = 0;
-        for (Map.Entry<String, BatchMessageIdImpl> topicMsgPair : latestMsgIdMap.entrySet()) {
+        for (Map.Entry<String, MessageIdPojo> topicMsgPair : latestMsgIdMap.entrySet()) {
             String topic = topicMsgPair.getKey();
-            BatchMessageIdImpl messageId = topicMsgPair.getValue();
+            MessageIdPojo messageId = topicMsgPair.getValue();
             List<Message<byte[]>> messages = null;
             try {
                 messages =
