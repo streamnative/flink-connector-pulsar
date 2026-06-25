@@ -69,8 +69,8 @@ public class PulsarCommittable {
             return false;
         }
         PulsarCommittable that = (PulsarCommittable) o;
-        return Objects.equals(txnID, that.txnID) && Objects.equals(latestPublishedMessages,
-                that.latestPublishedMessages);
+        return Objects.equals(txnID, that.txnID)
+                && Objects.equals(latestPublishedMessages, that.latestPublishedMessages);
     }
 
     @Override
@@ -80,9 +80,11 @@ public class PulsarCommittable {
 
     @Override
     public String toString() {
-        return "PulsarCommittable{" +
-                "txnID=" + txnID +
-                ", latestPublishedMessages=" + latestPublishedMessages +
-                '}';
+        return "PulsarCommittable{"
+                + "txnID="
+                + txnID
+                + ", latestPublishedMessages="
+                + latestPublishedMessages
+                + '}';
     }
 }

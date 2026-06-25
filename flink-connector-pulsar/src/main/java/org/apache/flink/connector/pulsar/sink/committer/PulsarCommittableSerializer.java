@@ -18,11 +18,11 @@
 
 package org.apache.flink.connector.pulsar.sink.committer;
 
+import org.apache.flink.core.io.SimpleVersionedSerializer;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.apache.flink.core.io.SimpleVersionedSerializer;
-
 import org.apache.pulsar.client.api.transaction.TxnID;
 
 import java.io.ByteArrayInputStream;
@@ -69,7 +69,7 @@ public class PulsarCommittableSerializer implements SimpleVersionedSerializer<Pu
 
     private PulsarCommittable deserializeV1(byte[] serialized) throws IOException {
         try (final ByteArrayInputStream bais = new ByteArrayInputStream(serialized);
-             final DataInputStream in = new DataInputStream(bais)) {
+                final DataInputStream in = new DataInputStream(bais)) {
             long mostSigBits = in.readLong();
             long leastSigBits = in.readLong();
             TxnID txnID = new TxnID(mostSigBits, leastSigBits);
@@ -78,9 +78,12 @@ public class PulsarCommittableSerializer implements SimpleVersionedSerializer<Pu
     }
 
     private PulsarCommittable deserializeV2(byte[] serialized) throws IOException {
-        PulsarCommittablePojo pulsarCommittablePojo = OBJECT_MAPPER.readValue(serialized, PulsarCommittablePojo.class);
-        TxnID txnID = new TxnID(pulsarCommittablePojo.getTxnID().getMostSigBits(),
-                pulsarCommittablePojo.getTxnID().getLeastSigBits());
+        PulsarCommittablePojo pulsarCommittablePojo =
+                OBJECT_MAPPER.readValue(serialized, PulsarCommittablePojo.class);
+        TxnID txnID =
+                new TxnID(
+                        pulsarCommittablePojo.getTxnID().getMostSigBits(),
+                        pulsarCommittablePojo.getTxnID().getLeastSigBits());
         return new PulsarCommittable(txnID, pulsarCommittablePojo.getLatestPublishedMessages());
     }
 }

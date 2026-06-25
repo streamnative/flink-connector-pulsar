@@ -82,8 +82,7 @@ class PulsarCommittableSerializerTest {
     @Test
     void v2SerializeIsJson() throws IOException {
         TxnID txnID = randomTxnID();
-        PulsarCommittable committable =
-                new PulsarCommittable(txnID, Collections.emptyMap());
+        PulsarCommittable committable = new PulsarCommittable(txnID, Collections.emptyMap());
         byte[] bytes = INSTANCE.serialize(committable);
 
         String json = new String(bytes);
@@ -132,8 +131,7 @@ class PulsarCommittableSerializerTest {
         TxnID txnID = randomTxnID();
 
         // V2 round-trip
-        PulsarCommittable v2Original =
-                new PulsarCommittable(txnID, Collections.emptyMap());
+        PulsarCommittable v2Original = new PulsarCommittable(txnID, Collections.emptyMap());
         byte[] v2Bytes = INSTANCE.serialize(v2Original);
         PulsarCommittable v2Deserialized = INSTANCE.deserialize(2, v2Bytes);
         assertThat(v2Deserialized.getVersion()).isEqualTo(2);

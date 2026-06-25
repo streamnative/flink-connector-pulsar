@@ -10,7 +10,8 @@ public class PulsarCommittablePojo {
 
     public PulsarCommittablePojo() {}
 
-    public PulsarCommittablePojo(TxnIdPojo txnID, Map<String, MessageIdPojo> latestPublishedMessages) {
+    public PulsarCommittablePojo(
+            TxnIdPojo txnID, Map<String, MessageIdPojo> latestPublishedMessages) {
         this.txnID = txnID;
         this.latestPublishedMessages = latestPublishedMessages;
     }
@@ -27,8 +28,7 @@ public class PulsarCommittablePojo {
         return latestPublishedMessages;
     }
 
-    public void setLatestPublishedMessages(
-            Map<String, MessageIdPojo> latestPublishedMessages) {
+    public void setLatestPublishedMessages(Map<String, MessageIdPojo> latestPublishedMessages) {
         this.latestPublishedMessages = latestPublishedMessages;
     }
 
@@ -38,8 +38,8 @@ public class PulsarCommittablePojo {
             return false;
         }
         PulsarCommittablePojo that = (PulsarCommittablePojo) o;
-        return Objects.equals(txnID, that.txnID) && Objects.equals(latestPublishedMessages,
-                that.latestPublishedMessages);
+        return Objects.equals(txnID, that.txnID)
+                && Objects.equals(latestPublishedMessages, that.latestPublishedMessages);
     }
 
     @Override

@@ -56,7 +56,9 @@ public class MessageIdPojo {
             return false;
         }
         MessageIdPojo that = (MessageIdPojo) o;
-        return batchIndex == that.batchIndex && batchSize == that.batchSize && ledgerId == that.ledgerId
+        return batchIndex == that.batchIndex
+                && batchSize == that.batchSize
+                && ledgerId == that.ledgerId
                 && entryId == that.entryId;
     }
 

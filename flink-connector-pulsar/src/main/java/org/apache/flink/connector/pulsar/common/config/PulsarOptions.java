@@ -627,5 +627,4 @@ public final class PulsarOptions {
                     .defaultValue(300000)
                     .withDescription(
                             "The auto cert refresh time (in ms) if Pulsar admin supports TLS authentication.");
-
 }
