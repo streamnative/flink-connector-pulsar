@@ -254,7 +254,7 @@ public final class PulsarTableOptions {
                                                     "If you use TLS authentication, the URL is as %s",
                                                     code(
                                                             "pulsar+ssl://pulsar.us-west.example.com:6651")))
-                                     .build());
+                                    .build());
 
     /**
      * Exactly same as {@link

@@ -85,7 +85,8 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
     private final ProducerRegister producerRegister;
     private final MailboxExecutor mailboxExecutor;
     private final AtomicLong pendingMessages;
-    private final ConcurrentHashMap<String, BatchMessageIdImpl> latestPublishedMessages = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, BatchMessageIdImpl> latestPublishedMessages =
+            new ConcurrentHashMap<>();
 
     /**
      * Constructor creating a Pulsar writer.
@@ -181,9 +182,13 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
                                     "Failed to send data to Pulsar");
                         } else {
                             MessageIdAdv messageIdAdv = (MessageIdAdv) id;
-                            latestPublishedMessages.put(topic, new BatchMessageIdImpl(messageIdAdv.getLedgerId(),
-                                    messageIdAdv.getEntryId(), messageIdAdv.getBatchSize(),
-                                    messageIdAdv.getBatchIndex()));
+                            latestPublishedMessages.put(
+                                    topic,
+                                    new BatchMessageIdImpl(
+                                            messageIdAdv.getLedgerId(),
+                                            messageIdAdv.getEntryId(),
+                                            messageIdAdv.getBatchSize(),
+                                            messageIdAdv.getBatchIndex()));
                             LOG.debug("Sent message to Pulsar {} with message id {}", topic, id);
                         }
                     });

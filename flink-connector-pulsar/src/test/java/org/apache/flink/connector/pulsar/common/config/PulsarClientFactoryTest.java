@@ -29,8 +29,7 @@ class PulsarClientFactoryTest {
 
     @Test
     void getAdminUrlPulsarSchemeConvertsToHttp() throws Exception {
-        assertThat(invokeGetAdminUrl("pulsar://localhost:6650"))
-                .isEqualTo("http://localhost:8080");
+        assertThat(invokeGetAdminUrl("pulsar://localhost:6650")).isEqualTo("http://localhost:8080");
     }
 
     @Test

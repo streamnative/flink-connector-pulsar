@@ -116,8 +116,7 @@ class PulsarCommitterTest {
         when(mockMessage.getProperties()).thenReturn(props);
         List<Message<byte[]>> messageList = buildMessageList(mockMessage);
 
-        when(getTopicsMock().getMessagesById(TOPIC, LEDGER_ID, ENTRY_ID))
-                .thenReturn(messageList);
+        when(getTopicsMock().getMessagesById(TOPIC, LEDGER_ID, ENTRY_ID)).thenReturn(messageList);
 
         committer.commit(Collections.singletonList(request));
         verify(request).signalFailedWithKnownReason(any(FlinkRuntimeException.class));
@@ -134,8 +133,7 @@ class PulsarCommitterTest {
         PulsarCommittable committable = new PulsarCommittable(txnID, messages);
         CommitRequest<PulsarCommittable> request = mockCommitRequest(committable);
 
-        when(getTopicsMock().getMessagesById(TOPIC, LEDGER_ID, ENTRY_ID))
-                .thenReturn(null);
+        when(getTopicsMock().getMessagesById(TOPIC, LEDGER_ID, ENTRY_ID)).thenReturn(null);
 
         committer.commit(Collections.singletonList(request));
         verify(request).signalFailedWithKnownReason(any(FlinkRuntimeException.class));
@@ -174,8 +172,7 @@ class PulsarCommitterTest {
         Message<byte[]> mockMessage = buildUncommittedMessage();
         List<Message<byte[]>> messageList = buildMessageList(mockMessage);
 
-        when(getTopicsMock().getMessagesById(TOPIC, LEDGER_ID, ENTRY_ID))
-                .thenReturn(messageList);
+        when(getTopicsMock().getMessagesById(TOPIC, LEDGER_ID, ENTRY_ID)).thenReturn(messageList);
 
         TransactionCoordinatorClientException ex =
                 new TransactionCoordinatorClientException("retriable error");
@@ -200,8 +197,7 @@ class PulsarCommitterTest {
         Message<byte[]> mockMessage = buildUncommittedMessage();
         List<Message<byte[]>> messageList = buildMessageList(mockMessage);
 
-        when(getTopicsMock().getMessagesById(TOPIC, LEDGER_ID, ENTRY_ID))
-                .thenReturn(messageList);
+        when(getTopicsMock().getMessagesById(TOPIC, LEDGER_ID, ENTRY_ID)).thenReturn(messageList);
 
         TransactionCoordinatorClientException ex =
                 new TransactionCoordinatorClientException("retriable error");
@@ -226,10 +222,11 @@ class PulsarCommitterTest {
         Message<byte[]> mockMessage = buildUncommittedMessage();
         List<Message<byte[]>> messageList = buildMessageList(mockMessage);
 
-        when(getTopicsMock().getMessagesById(TOPIC, LEDGER_ID, ENTRY_ID))
-                .thenReturn(messageList);
+        when(getTopicsMock().getMessagesById(TOPIC, LEDGER_ID, ENTRY_ID)).thenReturn(messageList);
 
-        doThrow(new TransactionNotFoundException("txn not found")).when(coordinatorClient).commit(txnID);
+        doThrow(new TransactionNotFoundException("txn not found"))
+                .when(coordinatorClient)
+                .commit(txnID);
 
         committer.commit(Collections.singletonList(request));
         verify(request).signalAlreadyCommitted();
@@ -297,7 +294,6 @@ class PulsarCommitterTest {
 
     private static TxnID randomTxnID() {
         return new TxnID(
-                ThreadLocalRandom.current().nextLong(),
-                ThreadLocalRandom.current().nextLong());
+                ThreadLocalRandom.current().nextLong(), ThreadLocalRandom.current().nextLong());
     }
 }
