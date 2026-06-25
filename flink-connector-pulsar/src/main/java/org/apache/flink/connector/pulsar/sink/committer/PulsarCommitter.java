@@ -94,16 +94,25 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
         }
 
         // Newest version data.
+        TransactionCoordinatorClient client = transactionCoordinatorClient();
         Iterator<CommitRequest<PulsarCommittable>> iterator = requests.iterator();
         CommitRequest<PulsarCommittable> request = iterator.next();
         PulsarCommittable committable = request.getCommittable();
+        TxnID txnID = committable.getTxnID();
+
         // No messages were published.
         Map<String, MessageIdPojo> latestMsgIdMap = committable.getLatestPublishedMessages();
         if (latestMsgIdMap.isEmpty()) {
+            try {
+                client.commit(txnID);
+            } catch (Exception e) {
+                // Since no message relates to the transaction, we can ignore the error.
+                LOG.warn("Failed to commit an empty transaction. {}", committable, e);
+                request.signalAlreadyCommitted();
+            }
             return;
         }
-        TxnID txnID = committable.getTxnID();
-        TransactionCoordinatorClient client = transactionCoordinatorClient();
+
         // All topics in this transaction share the same txnID. Committing the txnID
         // atomically commits all topics — we only need to successfully query the message
         // state for one topic to decide whether to commit. If getMessagesById fails for
@@ -150,7 +159,7 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
             if ("true".equals(uncommitted) || "TRUE".equals(uncommitted)) {
                 try {
                     client.commit(txnID);
-                } catch (TransactionCoordinatorClientException e) {
+                } catch (Exception e) {
                     handleError(request, txnID, committable, e);
                 }
                 return;

@@ -33,7 +33,7 @@ import java.io.IOException;
 public class PulsarCommittableSerializer implements SimpleVersionedSerializer<PulsarCommittable> {
 
     private static final int VERSION_V1 = 1;
-    private static final int VERSION_V2 = 1;
+    private static final int VERSION_V2 = 2;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     {
@@ -61,7 +61,7 @@ public class PulsarCommittableSerializer implements SimpleVersionedSerializer<Pu
 
     @Override
     public PulsarCommittable deserialize(int version, byte[] serialized) throws IOException {
-        if (version != VERSION_V1) {
+        if (version == VERSION_V1) {
             return deserializeV1(serialized);
         }
         return deserializeV2(serialized);
