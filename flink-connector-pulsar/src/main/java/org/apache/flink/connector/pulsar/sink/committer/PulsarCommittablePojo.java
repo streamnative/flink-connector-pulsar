@@ -21,6 +21,7 @@ package org.apache.flink.connector.pulsar.sink.committer;
 import java.util.Map;
 import java.util.Objects;
 
+/** A POJO representation of {@link PulsarCommittable} used for serialization. */
 public class PulsarCommittablePojo {
 
     private TxnIdPojo txnID;

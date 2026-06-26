@@ -20,6 +20,7 @@ package org.apache.flink.connector.pulsar.sink.committer;
 
 import java.util.Objects;
 
+/** A POJO representation of Pulsar transaction ID used for serialization. */
 public class TxnIdPojo {
     private long mostSigBits;
     private long leastSigBits;
