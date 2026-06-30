@@ -34,7 +34,8 @@ public class MessageIdPojo {
 
     public MessageIdPojo() {}
 
-    public MessageIdPojo(long ledgerId, long entryId, int batchSize, int batchIndex, int partitionIndex) {
+    public MessageIdPojo(
+            long ledgerId, long entryId, int batchSize, int batchIndex, int partitionIndex) {
         this.batchIndex = batchIndex;
         this.batchSize = batchSize;
         this.ledgerId = ledgerId;
@@ -88,8 +89,11 @@ public class MessageIdPojo {
             return false;
         }
         MessageIdPojo that = (MessageIdPojo) o;
-        return batchIndex == that.batchIndex && batchSize == that.batchSize && ledgerId == that.ledgerId
-                && entryId == that.entryId && partitionIndex == that.partitionIndex;
+        return batchIndex == that.batchIndex
+                && batchSize == that.batchSize
+                && ledgerId == that.ledgerId
+                && entryId == that.entryId
+                && partitionIndex == that.partitionIndex;
     }
 
     @Override

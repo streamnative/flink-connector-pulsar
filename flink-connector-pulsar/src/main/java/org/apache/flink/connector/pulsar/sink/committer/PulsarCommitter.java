@@ -120,7 +120,10 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
             String topic = topicMsgPair.getKey();
             MessageIdPojo messageId = topicMsgPair.getValue();
             TopicName topicNameObj = TopicName.get(topic);
-            String realTopic = (messageId.getPartitionIndex() == -1 || topicNameObj.isPartitioned()) ? topic : topicNameObj.getPartition(messageId.getPartitionIndex()).toString();
+            String realTopic =
+                    (messageId.getPartitionIndex() == -1 || topicNameObj.isPartitioned())
+                            ? topic
+                            : topicNameObj.getPartition(messageId.getPartitionIndex()).toString();
             List<Message<byte[]>> messages = null;
             try {
                 messages =
