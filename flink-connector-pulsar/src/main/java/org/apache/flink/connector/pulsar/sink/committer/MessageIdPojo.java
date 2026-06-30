@@ -19,8 +19,10 @@
 package org.apache.flink.connector.pulsar.sink.committer;
 
 import java.util.Objects;
+import org.apache.flink.annotation.PublicEvolving;
 
 /** A POJO representation of Pulsar message ID used for serialization. */
+@PublicEvolving
 public class MessageIdPojo {
 
     private int batchIndex;
