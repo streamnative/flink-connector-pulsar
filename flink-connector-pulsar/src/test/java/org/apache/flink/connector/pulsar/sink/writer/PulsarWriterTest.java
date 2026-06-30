@@ -18,8 +18,6 @@
 
 package org.apache.flink.connector.pulsar.sink.writer;
 
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.JobInfo;
 import org.apache.flink.api.common.JobInfoImpl;
@@ -63,6 +61,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 import java.util.Collection;
 import java.util.List;
 import java.util.OptionalLong;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
@@ -117,9 +117,10 @@ class PulsarWriterTest extends PulsarTestSuiteBase {
         PulsarCommittable committable =
                 committables.stream().findFirst().orElseThrow(IllegalArgumentException::new);
         assertThat(committable.getLatestPublishedMessages()).isNotEmpty();
-        Set<String> topicSet = committable.getLatestPublishedMessages().keySet().stream()
-                .map(tp -> TopicName.get(tp).getPartitionedTopicName()).collect(
-                Collectors.toSet());
+        Set<String> topicSet =
+                committable.getLatestPublishedMessages().keySet().stream()
+                        .map(tp -> TopicName.get(tp).getPartitionedTopicName())
+                        .collect(Collectors.toSet());
         assertThat(topicSet).contains(topic);
 
         TransactionCoordinatorClient coordinatorClient = operator().coordinatorClient();
