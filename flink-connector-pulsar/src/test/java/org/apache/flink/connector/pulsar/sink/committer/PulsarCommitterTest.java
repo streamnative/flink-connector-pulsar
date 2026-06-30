@@ -87,6 +87,7 @@ class PulsarCommitterTest {
     @Test
     void commitWithEmptyLatestPublishedMessagesReturnsEarly() throws Exception {
         PulsarCommitter committer = createCommitter();
+        injectMocks(committer);
         TxnID txnID = randomTxnID();
         PulsarCommittable committable = new PulsarCommittable(txnID);
         CommitRequest<PulsarCommittable> request = mockCommitRequest(committable);
@@ -147,7 +148,7 @@ class PulsarCommitterTest {
         MessageIdPojo msgId = new MessageIdPojo(LEDGER_ID, ENTRY_ID, 0, 0);
         Map<String, MessageIdPojo> messages = Collections.singletonMap(TOPIC, msgId);
         PulsarCommittable committable = new PulsarCommittable(txnID, messages);
-        CommitRequest<PulsarCommittable> request = mockCommitRequest(committable);
+        CommitRequest<PulsarCommittable> request = mockCommitRequest(committable, 3);
 
         when(getTopicsMock().getMessagesById(TOPIC, LEDGER_ID, ENTRY_ID))
                 .thenThrow(new PulsarAdminException("Broker not reachable"));
