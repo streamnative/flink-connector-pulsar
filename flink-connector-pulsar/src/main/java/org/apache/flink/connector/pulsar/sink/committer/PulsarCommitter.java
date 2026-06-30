@@ -38,6 +38,8 @@ import org.apache.pulsar.client.api.transaction.TransactionCoordinatorClientExce
 import org.apache.pulsar.client.api.transaction.TransactionCoordinatorClientException.MetaStoreHandlerNotExistsException;
 import org.apache.pulsar.client.api.transaction.TransactionCoordinatorClientException.TransactionNotFoundException;
 import org.apache.pulsar.client.api.transaction.TxnID;
+import org.apache.pulsar.common.naming.TopicName;
+import org.apache.pulsar.common.partition.PartitionedTopicMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,11 +122,25 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
             MessageIdPojo messageId = topicMsgPair.getValue();
             List<Message<byte[]>> messages = null;
             try {
-                messages =
-                        pulsarAdmin
-                                .topics()
-                                .getMessagesById(
-                                        topic, messageId.getLedgerId(), messageId.getEntryId());
+                PartitionedTopicMetadata partitionedMetadata = pulsarAdmin.topics().getPartitionedTopicMetadata(topic);
+                if (partitionedMetadata == null) {
+                    throw new PulsarAdminException("Topic: " + topic + " does not exist");
+                }
+                if (partitionedMetadata.partitions > 0) {
+                    TopicName topicNameObj = TopicName.get(topic);
+                    for (int i = 0; i < partitionedMetadata.partitions; i++) {
+                        String topicPartition = topicNameObj.getPartition(i).toString();
+                        messages =
+                                pulsarAdmin
+                                        .topics()
+                                        .getMessagesById(
+                                                topicPartition, messageId.getLedgerId(), messageId.getEntryId());
+                        if (messages != null && !messages.isEmpty()) {
+                            break;
+                        }
+                    }
+                }
+
             } catch (PulsarAdminException e) {
                 messagesFailedQuery++;
                 LOG.warn("{} Failed to query message by ID {}", topic, messageId);
