@@ -175,7 +175,6 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
             CompletableFuture<MessageId> future = builder.sendAsync();
             future.whenComplete(
                     (id, ex) -> {
-                        pendingMessages.decrementAndGet();
                         if (ex != null) {
                             mailboxExecutor.execute(
                                     () -> throwSendingException(topic, ex),
@@ -191,6 +190,7 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
                                             messageIdAdv.getBatchIndex()));
                             LOG.debug("Sent message to Pulsar {} with message id {}", topic, id);
                         }
+                        pendingMessages.decrementAndGet();
                     });
         }
     }

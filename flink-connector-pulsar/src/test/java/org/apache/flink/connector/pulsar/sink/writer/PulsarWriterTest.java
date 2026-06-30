@@ -18,6 +18,8 @@
 
 package org.apache.flink.connector.pulsar.sink.writer;
 
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.JobInfo;
 import org.apache.flink.api.common.JobInfoImpl;
@@ -53,6 +55,7 @@ import org.apache.flink.streaming.runtime.tasks.TestProcessingTimeService;
 import org.apache.flink.util.UserCodeClassLoader;
 
 import org.apache.pulsar.client.api.transaction.TransactionCoordinatorClient;
+import org.apache.pulsar.common.naming.TopicName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -85,7 +88,7 @@ class PulsarWriterTest extends PulsarTestSuiteBase {
 
     @Test
     void prepareCommitReturnsCommittableWithLatestPublishedMessages() throws Exception {
-        String topic = "writer-msgid-" + randomAlphabetic(10);
+        String topic = "persistent://public/default/writer-msgid-" + randomAlphabetic(10);
         operator().createTopic(topic, 8);
         MetadataListener listener = new MetadataListener(singletonList(topic));
 
@@ -114,7 +117,10 @@ class PulsarWriterTest extends PulsarTestSuiteBase {
         PulsarCommittable committable =
                 committables.stream().findFirst().orElseThrow(IllegalArgumentException::new);
         assertThat(committable.getLatestPublishedMessages()).isNotEmpty();
-        assertThat(committable.getLatestPublishedMessages()).containsKey(topic);
+        Set<String> topicSet = committable.getLatestPublishedMessages().keySet().stream()
+                .map(tp -> TopicName.get(tp).getPartitionedTopicName()).collect(
+                Collectors.toSet());
+        assertThat(topicSet).contains(topic);
 
         TransactionCoordinatorClient coordinatorClient = operator().coordinatorClient();
         coordinatorClient.commit(committable.getTxnID());

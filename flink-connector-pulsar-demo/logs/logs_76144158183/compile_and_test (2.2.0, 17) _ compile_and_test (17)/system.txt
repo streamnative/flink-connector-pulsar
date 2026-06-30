@@ -1,0 +1,14 @@
+2026-06-26T01:47:57.0790000Z Requested labels: ubuntu-latest
+2026-06-26T01:47:57.0790000Z Job defined at: apache/flink-connector-shared-utils/.github/workflows/ci.yml@refs/heads/ci_utils
+2026-06-26T01:47:57.0790000Z Reusable workflow chain:
+2026-06-26T01:47:57.0790000Z streamnative/flink-connector-pulsar/.github/workflows/ci.yml@refs/pull/12/merge (e7b1073bdc418c3e647b658ab5ce522a18025105)
+2026-06-26T01:47:57.0790000Z -> apache/flink-connector-shared-utils/.github/workflows/ci.yml@refs/heads/ci_utils (968115d7810916c4361c2b78859e2e3befa4810e)
+2026-06-26T01:47:57.0790000Z Waiting for a runner to pick up this job...
+2026-06-26T01:47:57.0770000Z Evaluating compile_and_test.if
+2026-06-26T01:47:57.0770000Z Evaluating: success()
+2026-06-26T01:47:57.0770000Z Result: true
+2026-06-26T01:47:57.0770000Z Evaluating compile_and_test._2_2_0_17.compile_and_test.if
+2026-06-26T01:47:57.0770000Z Evaluating: success()
+2026-06-26T01:47:57.0770000Z Result: true
+2026-06-26T01:47:57.5570000Z Job is waiting for a hosted runner to come online.
+2026-06-26T01:47:57.5580000Z Job is about to start running on the hosted runner: GitHub Actions 1000397942
