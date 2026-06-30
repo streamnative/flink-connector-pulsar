@@ -49,8 +49,8 @@ class PulsarCommittableSerializerTest {
     void v2SerializeAndDeserializeWithMessages() throws IOException {
         TxnID txnID = randomTxnID();
         Map<String, MessageIdPojo> messages = new HashMap<>();
-        messages.put("topic-a", new MessageIdPojo(1L, 2L, 3, 0));
-        messages.put("topic-b", new MessageIdPojo(10L, 20L, 1, 0));
+        messages.put("topic-a", new MessageIdPojo(1L, 2L, 3, 0, -1));
+        messages.put("topic-b", new MessageIdPojo(10L, 20L, 1, 0, -1));
 
         PulsarCommittable original = new PulsarCommittable(txnID, messages);
         byte[] bytes = INSTANCE.serialize(original);
@@ -61,9 +61,9 @@ class PulsarCommittableSerializerTest {
         assertThat(deserialized.getTxnID()).isEqualTo(txnID);
         assertThat(deserialized.getLatestPublishedMessages()).hasSize(2);
         assertThat(deserialized.getLatestPublishedMessages().get("topic-a"))
-                .isEqualTo(new MessageIdPojo(1L, 2L, 3, 0));
+                .isEqualTo(new MessageIdPojo(1L, 2L, 3, 0, -1));
         assertThat(deserialized.getLatestPublishedMessages().get("topic-b"))
-                .isEqualTo(new MessageIdPojo(10L, 20L, 1, 0));
+                .isEqualTo(new MessageIdPojo(10L, 20L, 1, 0, -1));
     }
 
     @Test

@@ -39,7 +39,6 @@ import org.apache.pulsar.client.api.transaction.TransactionCoordinatorClientExce
 import org.apache.pulsar.client.api.transaction.TransactionCoordinatorClientException.TransactionNotFoundException;
 import org.apache.pulsar.client.api.transaction.TxnID;
 import org.apache.pulsar.common.naming.TopicName;
-import org.apache.pulsar.common.partition.PartitionedTopicMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,27 +119,15 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
         for (Map.Entry<String, MessageIdPojo> topicMsgPair : latestMsgIdMap.entrySet()) {
             String topic = topicMsgPair.getKey();
             MessageIdPojo messageId = topicMsgPair.getValue();
+            TopicName topicNameObj = TopicName.get(topic);
+            String realTopic = (messageId.getPartitionIndex() == -1 || topicNameObj.isPartitioned()) ? topic : topicNameObj.getPartition(messageId.getPartitionIndex()).toString();
             List<Message<byte[]>> messages = null;
             try {
-                PartitionedTopicMetadata partitionedMetadata = pulsarAdmin.topics().getPartitionedTopicMetadata(topic);
-                if (partitionedMetadata == null) {
-                    throw new PulsarAdminException("Topic: " + topic + " does not exist");
-                }
-                if (partitionedMetadata.partitions > 0) {
-                    TopicName topicNameObj = TopicName.get(topic);
-                    for (int i = 0; i < partitionedMetadata.partitions; i++) {
-                        String topicPartition = topicNameObj.getPartition(i).toString();
-                        messages =
-                                pulsarAdmin
-                                        .topics()
-                                        .getMessagesById(
-                                                topicPartition, messageId.getLedgerId(), messageId.getEntryId());
-                        if (messages != null && !messages.isEmpty()) {
-                            break;
-                        }
-                    }
-                }
-
+                messages =
+                        pulsarAdmin
+                                .topics()
+                                .getMessagesById(
+                                        realTopic, messageId.getLedgerId(), messageId.getEntryId());
             } catch (PulsarAdminException e) {
                 messagesFailedQuery++;
                 LOG.warn("{} Failed to query message by ID {}", topic, messageId);

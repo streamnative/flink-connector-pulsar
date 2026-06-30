@@ -30,14 +30,16 @@ public class MessageIdPojo {
     private int batchSize;
     private long ledgerId;
     private long entryId;
+    private int partitionIndex;
 
     public MessageIdPojo() {}
 
-    public MessageIdPojo(long ledgerId, long entryId, int batchSize, int batchIndex) {
+    public MessageIdPojo(long ledgerId, long entryId, int batchSize, int batchIndex, int partitionIndex) {
         this.batchIndex = batchIndex;
         this.batchSize = batchSize;
         this.ledgerId = ledgerId;
         this.entryId = entryId;
+        this.partitionIndex = partitionIndex;
     }
 
     public int getBatchIndex() {
@@ -72,20 +74,26 @@ public class MessageIdPojo {
         this.entryId = entryId;
     }
 
+    public int getPartitionIndex() {
+        return partitionIndex;
+    }
+
+    public void setPartitionIndex(int partitionIndex) {
+        this.partitionIndex = partitionIndex;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof MessageIdPojo)) {
             return false;
         }
         MessageIdPojo that = (MessageIdPojo) o;
-        return batchIndex == that.batchIndex
-                && batchSize == that.batchSize
-                && ledgerId == that.ledgerId
-                && entryId == that.entryId;
+        return batchIndex == that.batchIndex && batchSize == that.batchSize && ledgerId == that.ledgerId
+                && entryId == that.entryId && partitionIndex == that.partitionIndex;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(batchIndex, batchSize, ledgerId, entryId);
+        return Objects.hash(batchIndex, batchSize, ledgerId, entryId, partitionIndex);
     }
 }

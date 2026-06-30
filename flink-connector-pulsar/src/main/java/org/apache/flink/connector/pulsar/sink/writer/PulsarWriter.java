@@ -187,7 +187,8 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
                                             messageIdAdv.getLedgerId(),
                                             messageIdAdv.getEntryId(),
                                             messageIdAdv.getBatchSize(),
-                                            messageIdAdv.getBatchIndex()));
+                                            messageIdAdv.getBatchIndex(),
+                                            messageIdAdv.getPartitionIndex()));
                             LOG.debug("Sent message to Pulsar {} with message id {}", topic, id);
                         }
                         pendingMessages.decrementAndGet();
