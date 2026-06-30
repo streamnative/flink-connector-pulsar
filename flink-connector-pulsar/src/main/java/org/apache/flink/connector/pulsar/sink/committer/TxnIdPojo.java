@@ -18,8 +18,9 @@
 
 package org.apache.flink.connector.pulsar.sink.committer;
 
-import java.util.Objects;
 import org.apache.flink.annotation.PublicEvolving;
+
+import java.util.Objects;
 
 /** A POJO representation of Pulsar transaction ID used for serialization. */
 @PublicEvolving

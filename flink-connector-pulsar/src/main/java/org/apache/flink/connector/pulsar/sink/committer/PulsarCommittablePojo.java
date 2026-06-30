@@ -18,9 +18,10 @@
 
 package org.apache.flink.connector.pulsar.sink.committer;
 
+import org.apache.flink.annotation.PublicEvolving;
+
 import java.util.Map;
 import java.util.Objects;
-import org.apache.flink.annotation.PublicEvolving;
 
 /** A POJO representation of {@link PulsarCommittable} used for serialization. */
 @PublicEvolving
