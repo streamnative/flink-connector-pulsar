@@ -120,6 +120,10 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
             String topic = topicMsgPair.getKey();
             MessageIdPojo messageId = topicMsgPair.getValue();
             TopicName topicNameObj = TopicName.get(topic);
+            // When the Pulsar sink auto-creates a topic, it may create a partitioned topic.
+            // In that case topicNameObj.isPartitioned() returns false (the topic name string does
+            // not contain "-partition-") but messageId.getPartitionIndex() >= 0, so we fall into
+            // the else branch to construct the real partition topic name for message lookup.
             String realTopic =
                     (messageId.getPartitionIndex() == -1 || topicNameObj.isPartitioned())
                             ? topic
@@ -133,7 +137,7 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
                                         realTopic, messageId.getLedgerId(), messageId.getEntryId());
             } catch (PulsarAdminException e) {
                 messagesFailedQuery++;
-                LOG.warn("{} Failed to query message by ID {}", topic, messageId);
+                LOG.warn("{} Failed to query message by ID {}", topic, messageId, e);
                 continue;
             }
             if (messages == null || messages.isEmpty()) {
@@ -148,7 +152,7 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
             Map<String, String> props = msg.getProperties();
             String aborted = props.get(TXN_ABORTED);
             String uncommitted = props.get(TXN_UNCOMMITTED);
-            if ("true".equals(aborted) || "TRUE".equals(aborted)) {
+            if ("true".equalsIgnoreCase(aborted)) {
                 String logMsg =
                         String.format(
                                 "The transaction %s has been aborted, relates to %s",
@@ -158,7 +162,7 @@ public class PulsarCommitter implements Committer<PulsarCommittable>, Closeable 
                 return;
             }
 
-            if ("true".equals(uncommitted) || "TRUE".equals(uncommitted)) {
+            if ("true".equalsIgnoreCase(uncommitted)) {
                 try {
                     client.commit(txnID);
                 } catch (Exception e) {
