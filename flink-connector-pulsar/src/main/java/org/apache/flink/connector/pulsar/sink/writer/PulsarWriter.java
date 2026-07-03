@@ -180,7 +180,8 @@ public class PulsarWriter<IN> implements CommittingSinkWriter<IN, PulsarCommitta
                                     () -> throwSendingException(topic, ex),
                                     "Failed to send data to Pulsar");
                         } else {
-                            // Safe cast: all MessageId implementations in Pulsar implement MessageIdAdv
+                            // Safe cast: all MessageId implementations in Pulsar implement
+                            // MessageIdAdv
                             MessageIdAdv messageIdAdv = (MessageIdAdv) id;
                             latestPublishedMessages.put(
                                     topic,
