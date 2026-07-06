@@ -20,55 +20,46 @@ package org.apache.flink.connector.pulsar.sink.committer;
 
 import org.apache.flink.annotation.PublicEvolving;
 
-import org.apache.pulsar.client.api.transaction.TxnID;
-
-import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
-/** The writer state for Pulsar connector. We would used in Pulsar committer. */
+/** A POJO representation of {@link PulsarCommittable} used for serialization. */
 @PublicEvolving
-public class PulsarCommittable {
+public class PulsarCommittablePojo {
 
-    /** The transaction id. */
-    private final TxnID txnID;
+    private TxnIdPojo txnID;
+    private Map<String, MessageIdPojo> latestPublishedMessages;
 
-    private final Map<String, MessageIdPojo> latestPublishedMessages;
+    public PulsarCommittablePojo() {}
 
-    private final int version;
-
-    public PulsarCommittable(TxnID txnID, Map<String, MessageIdPojo> latestPublishedMessages) {
+    public PulsarCommittablePojo(
+            TxnIdPojo txnID, Map<String, MessageIdPojo> latestPublishedMessages) {
         this.txnID = txnID;
         this.latestPublishedMessages = latestPublishedMessages;
-        this.version = 2;
     }
 
-    // This constructor should only be used by PulsarCommittableSerializer.
-    @Deprecated
-    public PulsarCommittable(TxnID txnID) {
-        this.txnID = txnID;
-        this.latestPublishedMessages = Collections.emptyMap();
-        this.version = 1;
-    }
-
-    public TxnID getTxnID() {
+    public TxnIdPojo getTxnID() {
         return txnID;
+    }
+
+    public void setTxnID(TxnIdPojo txnID) {
+        this.txnID = txnID;
     }
 
     public Map<String, MessageIdPojo> getLatestPublishedMessages() {
         return latestPublishedMessages;
     }
 
-    public int getVersion() {
-        return version;
+    public void setLatestPublishedMessages(Map<String, MessageIdPojo> latestPublishedMessages) {
+        this.latestPublishedMessages = latestPublishedMessages;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof PulsarCommittable)) {
+        if (!(o instanceof PulsarCommittablePojo)) {
             return false;
         }
-        PulsarCommittable that = (PulsarCommittable) o;
+        PulsarCommittablePojo that = (PulsarCommittablePojo) o;
         return Objects.equals(txnID, that.txnID)
                 && Objects.equals(latestPublishedMessages, that.latestPublishedMessages);
     }
@@ -76,15 +67,5 @@ public class PulsarCommittable {
     @Override
     public int hashCode() {
         return Objects.hash(txnID, latestPublishedMessages);
-    }
-
-    @Override
-    public String toString() {
-        return "PulsarCommittable{"
-                + "txnID="
-                + txnID
-                + ", latestPublishedMessages="
-                + latestPublishedMessages
-                + '}';
     }
 }

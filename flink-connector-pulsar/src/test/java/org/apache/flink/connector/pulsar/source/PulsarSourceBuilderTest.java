@@ -31,6 +31,9 @@ class PulsarSourceBuilderTest {
         PulsarSourceBuilder<String> builder = new PulsarSourceBuilder<>();
         fillRequiredFields(builder);
 
+        assertThatThrownBy(() -> builder.setAdminUrl("admin-url2"))
+                .isInstanceOf(IllegalArgumentException.class);
+
         assertThatThrownBy(() -> builder.setServiceUrl("service-url2"))
                 .isInstanceOf(IllegalArgumentException.class);
 
@@ -47,6 +50,7 @@ class PulsarSourceBuilderTest {
     }
 
     private void fillRequiredFields(PulsarSourceBuilder<String> builder) {
+        builder.setAdminUrl("admin-url");
         builder.setServiceUrl("service-url");
         builder.setSubscriptionName("subscription-name");
         builder.setTopics("topic");

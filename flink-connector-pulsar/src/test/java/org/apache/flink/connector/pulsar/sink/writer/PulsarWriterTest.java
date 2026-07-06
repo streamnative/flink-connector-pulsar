@@ -53,6 +53,7 @@ import org.apache.flink.streaming.runtime.tasks.TestProcessingTimeService;
 import org.apache.flink.util.UserCodeClassLoader;
 
 import org.apache.pulsar.client.api.transaction.TransactionCoordinatorClient;
+import org.apache.pulsar.common.naming.TopicName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -60,6 +61,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 import java.util.Collection;
 import java.util.List;
 import java.util.OptionalLong;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
@@ -81,6 +84,50 @@ class PulsarWriterTest extends PulsarTestSuiteBase {
         MetadataListener listener = new MetadataListener(singletonList(topic));
 
         writeMessageAndVerify(guarantee, listener, topic);
+    }
+
+    @Test
+    void prepareCommitReturnsCommittableWithLatestPublishedMessages() throws Exception {
+        String topic = "persistent://public/default/writer-msgid-" + randomAlphabetic(10);
+        operator().createTopic(topic, 8);
+        MetadataListener listener = new MetadataListener(singletonList(topic));
+
+        SinkConfiguration configuration = sinkConfiguration(EXACTLY_ONCE);
+        TopicRouter<String> router = new DynamicTopicRouter<>(configuration, topic);
+        PulsarSerializationSchema<String> schema = new PulsarSchemaWrapper<>(STRING);
+        FixedMessageDelayer<String> delayer = MessageDelayer.never();
+        MockInitContext initContext = new MockInitContext();
+
+        PulsarWriter<String> writer =
+                new PulsarWriter<>(
+                        configuration,
+                        schema,
+                        listener,
+                        router,
+                        delayer,
+                        PulsarCrypto.disabled(),
+                        initContext);
+
+        String message = randomAlphabetic(10);
+        writer.write(message, CONTEXT);
+        writer.flush(false);
+
+        Collection<PulsarCommittable> committables = writer.prepareCommit();
+        assertThat(committables).hasSize(1);
+        PulsarCommittable committable =
+                committables.stream().findFirst().orElseThrow(IllegalArgumentException::new);
+        assertThat(committable.getLatestPublishedMessages()).isNotEmpty();
+        Set<String> topicSet =
+                committable.getLatestPublishedMessages().keySet().stream()
+                        .map(tp -> TopicName.get(tp).getPartitionedTopicName())
+                        .collect(Collectors.toSet());
+        assertThat(topicSet).contains(topic);
+
+        TransactionCoordinatorClient coordinatorClient = operator().coordinatorClient();
+        coordinatorClient.commit(committable.getTxnID());
+
+        String consumedMessage = operator().receiveMessage(topic, STRING).getValue();
+        assertThat(consumedMessage).isEqualTo(message);
     }
 
     @Test
